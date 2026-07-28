@@ -4,12 +4,19 @@ import { useNavigate } from "react-router-dom";
 export default function HeaderMenu() {
 
   const navigate= useNavigate();
+  const handleBack = () => {
+    if (window.history.state && window.history.state.idx > 0) {
+      navigate(-1);
+    } else {
+      navigate("/Dashboard"); // límite seguro
+    }
+  };
 
   return (
     <header className="topbar">
       {/* 1. Botón Volver */}
       <div className="topbar-left">
-        <button className="back-btn" aria-label="Volver" onClick={() => navigate(-1)}>
+        <button className="back-btn" aria-label="Volver" onClick={handleBack}>
           <i className="bi bi-arrow-left"></i>
         </button>
       </div>
