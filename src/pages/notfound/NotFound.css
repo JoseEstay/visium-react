@@ -1,0 +1,75 @@
+.not-found-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 80vh;
+  padding: 2rem;
+  text-align: center;
+}
+
+.not-found-content {
+  max-width: 480px;
+  width: 100%;
+}
+
+.error-code {
+  font-size: 6rem;
+  font-weight: 800;
+  color: #2b303a;
+  margin: 0;
+  line-height: 1;
+}
+
+.icon-wrapper {
+  font-size: 4rem;
+  color: #6c757d;
+  margin: 1rem 0;
+}
+
+.not-found-content h2 {
+  font-size: 1.75rem;
+  color: #1a1a1a;
+  margin-bottom: 0.5rem;
+}
+
+.not-found-content p {
+  color: #6c757d;
+  margin-bottom: 2rem;
+}
+
+.not-found-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+/* Reutilizando tu estilo de botones o creando genéricos */
+.btn-primary, .btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  transition: background-color 0.2s ease;
+}
+
+.btn-primary {
+  background-color: #0d6efd;
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: #0b5ed7;
+}
+
+.btn-secondary {
+  background-color: #e9ecef;
+  color: #212529;
+}
+
+.btn-secondary:hover {
+  background-color: #dee2e6;
+}

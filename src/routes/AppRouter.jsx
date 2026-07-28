@@ -8,6 +8,7 @@ import Home from "../pages/Home/Home";
 import NuevoPaciente from "../pages/nuevoPaciente/NuevoPaciente";
 import GestionCitas from "../pages/Citas/GestionCitas";
 import GestionPacientes from "../pages/gestionPacientes/gestionPacientes";
+import NotFound from "../pages/NotFound/notFound";
 
 export default function AppRouter() {
   return (
@@ -27,7 +28,8 @@ export default function AppRouter() {
         </Route>
 
         <Route path="/login" element={<Login />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="/NotFound" element={<NotFound />} />
+        <Route path="*" element={<Navigate to="/NotFound" replace />} />
 
 
 
