@@ -3,5 +3,6 @@
   { "id": "U-002", "nombre": "Diego Rojas", "email": "admin.sucursal@visium.cl", "password": "prueba123", "rol": "administrador sucursal", "sucursalId": "S-001" },
   { "id": "U-005", "nombre": "Valentina Fuentes", "email": "jefe@visium.cl", "password": "prueba123", "rol": "jefe", "sucursalId": null },
   { "id": "U-003", "nombre": "Dra. Paula Silva", "email": "prueba1@gmail.com", "password": "prueba123", "rol": "profesional", "sucursalId": "S-001" },
-  { "id": "U-004", "nombre": "Carolina Díaz", "email": "recepcion@visium.cl", "password": "prueba123", "rol": "recepcionista", "sucursalId": "S-001" }
+  { "id": "U-004", "nombre": "Carolina Díaz", "email": "recepcion@visium.cl", "password": "prueba123", "rol": "recepcionista", "sucursalId": "S-001" },
+  { "id": "U-006", "nombre": "Marcela Soto", "email": "marcela.soto@visium.cl", "password": "prueba123", "rol": "recepcionista", "sucursalId": "S-002" }
 ]

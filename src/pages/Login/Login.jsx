@@ -103,7 +103,7 @@ function Login() {
               <div className="mb-3 position-relative">
                 <label className="form-label-custom mb-2 d-block">
                   Contraseña
-                  <a className="forgot-password" href="#">
+                  <a className="forgot-password" href="/recuperar-contrasena">
                     ¿Olvidó su contraseña?
                   </a>
                 </label>

@@ -258,6 +258,7 @@
 }
 
 .bottom-row a:hover { text-decoration: underline; }
+.reset-card{max-width:480px}.reset-input{height:40px;border:1px solid #cbd2df;background:#f4f5f7;font-size:.8rem}.reset-message{margin:0 0 16px;color:#b91c1c;font-size:.78rem}.reset-back{display:block;margin-top:20px;color:var(--visium-blue);font-size:.78rem;text-align:center;text-decoration:none}
 
 @media (max-width: 991.98px) {
     .auth-card { max-width: 690px; }

@@ -1,4 +1,6 @@
 [
-  { "id": "C-001", "paciente": "María González", "profesional": "Dra. Paula Silva", "fecha": "2026-07-29 09:00", "estado": "Confirmada", "sucursal": "Visium Santiago Centro" },
-  { "id": "C-002", "paciente": "Carlos Soto", "profesional": "Dra. Paula Silva", "fecha": "2026-07-29 10:30", "estado": "Pendiente", "sucursal": "Visium Santiago Centro" }
+  { "id": "C-001", "pacienteId": "P-1001", "paciente": "María González", "profesional": "Dra. Paula Silva", "fecha": "2026-07-29 09:00", "motivoConsulta": "Control de glaucoma y actualización de receta.", "estado": "Pendiente", "sucursal": "Visium Santiago Centro" },
+  { "id": "C-002", "pacienteId": "P-1002", "paciente": "Carlos Soto", "profesional": "Dra. Paula Silva", "fecha": "2026-07-29 10:30", "motivoConsulta": "Control posterior a cirugía de catarata.", "estado": "Confirmada", "sucursal": "Visium Santiago Centro" },
+  { "id": "C-003", "pacienteId": "P-1003", "paciente": "Andrea Pérez", "profesional": "Dra. Paula Silva", "fecha": "2026-07-29 11:45", "motivoConsulta": "Evaluación por disminución de visión a distancia.", "estado": "En espera", "sucursal": "Visium Santiago Centro" },
+  { "id": "C-004", "pacienteId": "P-1004", "paciente": "José Ramírez", "profesional": "Dra. Paula Silva", "fecha": "2026-07-29 14:00", "motivoConsulta": "Evaluación preoperatoria de catarata.", "estado": "Programada", "sucursal": "Visium Santiago Centro" }
 ]

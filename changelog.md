@@ -1,4 +1,37 @@
 # Changelog
+## 2026-07-29
+
+### Añadido
+- Se incorporaron archivos de datos para pacientes, citas, recetas, recepcionistas y usuarios vinculados.
+- Se añadió `recetas.json`, asociado por `pacienteId`, con graduación óptica, distancia pupilar, material, diagnóstico e indicaciones clínicas.
+- Se agregó el historial de recetas por paciente en Gestión Administrativa, con opciones para editar y eliminar registros.
+- Se incorporó el campo Diagnóstico en la página de Recetas y en la edición de su historial administrativo.
+- Se añadió el flujo de recuperación de contraseña: correo, validación del código de demostración `111-111` y actualización de contraseña local.
+- Se vinculó cada recepcionista con un usuario mediante `usuarioId` y se añadió el usuario de Marcela Soto.
+
+### Modificado
+- Gestión de Pacientes consulta los datos JSON de pacientes y recetas; la columna «Condición» pasó a llamarse «Diagnóstico».
+- Los antecedentes permanecen asociados al paciente; el motivo de consulta se trasladó desde pacientes a las citas.
+- La página Ficha carga los datos del paciente seleccionado desde una cita o desde el listado de pacientes.
+- El dashboard obtiene sus citas desde `citas.json`, las ordena por hora y muestra la más temprana como cita principal.
+- El botón «Confirmar cita» abre la ficha del paciente asociado a la cita principal.
+- Gestión Administrativa permite editar datos de pacientes, antecedentes, recetas y cuentas vinculadas a recepcionistas.
+- Los administradores de sucursal sólo pueden visualizar, crear y administrar recepcionistas y usuarios pertenecientes a su propia sucursal.
+- La opción «Métricas» quedó limitada a administradores y jefes.
+- Se actualizaron los rótulos de navegación administrativa a «Pacientes y recetas».
+
+### Corregido
+- Se corrigió la carga de última consulta, fecha de nacimiento y correo al combinar datos JSON con registros antiguos de `localStorage`.
+- Se corrigió el reconocimiento de usuarios nuevos, incluido Marcela Soto, en la gestión administrativa y recuperación de contraseña.
+- Se mejoró la responsividad de Pacientes, Gestión Administrativa, Recetas y Dashboard.
+- En pantallas angostas, el listado de pacientes se transforma en tarjetas para eliminar el desplazamiento horizontal de la tabla.
+- Se corrigió el layout de Recetas para usar el ancho disponible y no generar un scroll interno.
+
+### Quitado
+- Se eliminó la etiqueta «Paciente nuevo» y el botón «Estado de cita en trámite» de la tarjeta principal del dashboard.
+- Se eliminó la sección «Motivo de consulta» de la página Ficha/Paciente.
+- Se reemplazó `fichas.json` por `recetas.json`.
+
 ## 2026-07-24
 
 ### Añadido

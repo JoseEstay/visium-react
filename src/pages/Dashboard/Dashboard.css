@@ -75,7 +75,7 @@
 .paciente-header {
   display: flex;
   gap: 12px;
-  align-items: flex-start;
+  align-items: center;
 }
 
 .avatar-wrapper {
@@ -99,6 +99,8 @@
 .paciente-info {
   display: flex;
   flex-direction: column;
+  min-width: 0;
+  flex: 1;
 }
 
 .nombre-badge-row {
@@ -128,6 +130,7 @@
   margin: 4px 0 0 0;
   font-size: 12px;
   color: #64748b;
+  line-height: 1.4;
 }
 
 .consulta-subtext {
@@ -270,6 +273,9 @@
 }
 
 .status-completado { background-color: #e2fbe8; color: #15803d; }
+.status-pendiente { background-color: #dbeafe; color: #1d4ed8; }
+.status-confirmada { background-color: #e2fbe8; color: #15803d; }
+.status-en-espera { background-color: #f1f5f9; color: #475569; }
 .status-siguiente { background-color: #dbeafe; color: #1d4ed8; }
 .status-espera { background-color: #f1f5f9; color: #475569; }
 .status-programado { background-color: #f8fafc; color: #94a3b8; border: 1px solid #e2e8f0; }

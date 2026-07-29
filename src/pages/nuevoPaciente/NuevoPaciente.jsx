@@ -11,7 +11,7 @@ export default function NuevoPaciente() {
   // ESTADOS DEL FORMULARIO
   // ===============================
   const [formData, setFormData] = useState({
-    nombre: '', rut: '', fecha: '', sexo: '', telefono: '', email: '', motivo: '',
+    nombre: '', rut: '', fecha: '', sexo: '', telefono: '', email: '',
     diabetes: false, hipertension: false, glaucoma: true
   });
   
@@ -46,7 +46,7 @@ export default function NuevoPaciente() {
         const antecedentes = patient.antecedentes || lastRecord.condicionesMedicas || {};
         setFormData({
           nombre: patient.nombre || '', rut: patient.rut || '', fecha: patient.fechaNacimiento || '', sexo: (patient.sexo || '').toLowerCase(),
-          telefono: patient.telefono || '', email: patient.email || '', motivo: patient.motivoConsulta || '',
+          telefono: patient.telefono || '', email: patient.email || '',
           diabetes: antecedentes.diabetes ?? false,
           hipertension: antecedentes.hipertension ?? false,
           glaucoma: antecedentes.glaucoma ?? false
@@ -59,11 +59,11 @@ export default function NuevoPaciente() {
   // ===============================
   // LÓGICA DE BARRA DE PROGRESO (Estado derivado)
   // ===============================
-  const totalFields = 7; // nombre, rut, fecha, sexo, telefono, email, motivo
+  const totalFields = 6;
   
   const fieldsToTrack = [
     formData.nombre, formData.rut, formData.fecha, 
-    formData.sexo, formData.telefono, formData.email, formData.motivo
+    formData.sexo, formData.telefono, formData.email
   ];
   
   // Se calcula automáticamente en cada renderizado sin causar error de cascada
@@ -101,7 +101,6 @@ export default function NuevoPaciente() {
       ...patient,
       nombre: formData.nombre, rut: formData.rut, fechaNacimiento: formData.fecha, sexo: formData.sexo,
       telefono: formData.telefono, email: formData.email,
-      motivoConsulta: formData.motivo,
       antecedentes: { alergias, diabetes: formData.diabetes, hipertension: formData.hipertension, glaucoma: formData.glaucoma }
     };
     const updatedPatients = patients.map((item) => item.id === patient.id ? updatedPatient : item);
@@ -182,18 +181,6 @@ export default function NuevoPaciente() {
                   <input type="checkbox" id="glaucoma" checked={formData.glaucoma} onChange={handleInputChange} /> Glaucoma
                 </label>
               </div>
-            </section>
-
-            <section className="form-section">
-              <h2>Motivo de Consulta</h2>
-              <textarea 
-                id="motivo" 
-                maxLength="500" 
-                value={formData.motivo}
-                onChange={handleInputChange}
-                placeholder="Describa el motivo principal de la consulta del paciente..."
-              ></textarea>
-              <p className="hint">Máximo 500 caracteres</p>
             </section>
 
             <footer className="action-bar">

@@ -957,8 +957,71 @@
             margin-top: 12px;
         }
 
-        .patients-table-scroll table {
-            min-width: 720px;
+        .patients-table-scroll {
+            overflow-x: visible;
+        }
+
+        .patients-table-scroll table,
+        .patients-table-scroll tbody,
+        .patients-table-scroll tr,
+        .patients-table-scroll td {
+            display: block;
+            width: 100%;
+            min-width: 0;
+        }
+
+        .patients-table-scroll thead {
+            display: none;
+        }
+
+        .patients-table-scroll .patient-row {
+            margin-bottom: 14px;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: #fff;
+        }
+
+        .patients-table-scroll td {
+            display: grid;
+            grid-template-columns: minmax(105px, 38%) 1fr;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 0;
+            border-top: 0;
+            border-bottom: 1px solid #edf0f4;
+        }
+
+        .patients-table-scroll td::before {
+            content: attr(data-label);
+            color: var(--subtitle);
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .patients-table-scroll td.patient {
+            display: grid;
+            grid-template-columns: minmax(105px, 38%) 48px 1fr;
+            gap: 10px;
+        }
+
+        .patient img {
+            width: 48px;
+            height: 48px;
+        }
+
+        .patients-table-scroll td:last-child {
+            border-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .row-actions,
+        .recipe-btn {
+            width: 100%;
+        }
+
+        .recipe-btn {
+            flex: 1;
         }
 
         th,

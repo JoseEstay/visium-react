@@ -86,19 +86,19 @@ export default function GestionPacientes() {
                   const globalIndex = patients.findIndex(pat => pat.id === p.id);
                   return (
                     <tr key={p.id} className="patient-row">
-                      <td className="patient">
+                      <td className="patient" data-label="Paciente">
                         <img src={p.img} alt={p.nombre} />
                         <div>
                           <strong>{p.nombre}</strong>
                           <small>{p.edad} años · {p.sexo}</small>
                         </div>
                       </td>
-                      <td>{p.id}</td>
-                      <td>{p.consulta}</td>
-                      <td>
+                      <td data-label="ID">{p.id}</td>
+                      <td data-label="Última consulta">{p.consulta}</td>
+                      <td data-label="Diagnóstico">
                         <span className={`badge ${p.color}`}>{p.diagnostico || "Sin diagnóstico"}</span>
                       </td>
-                      <td>
+                      <td data-label="Acciones">
                         <div className="row-actions">
                           <button className="recipe-btn" onClick={() => navigate(`/paciente/${p.id}`)}>
                             <i className="bi bi-file-earmark-medical"></i> Crear Receta
