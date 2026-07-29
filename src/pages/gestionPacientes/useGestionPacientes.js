@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 const PATIENTS_STORAGE_KEY = "visium.admin.pacientes";
 const emptyPersonalData = {
   nombre: "",
-  id: "",
+  rut: "",
   fechaNacimiento: "",
   sexo: "Femenino",
   telefono: "",
@@ -40,7 +40,7 @@ function normalizePatient(patient) {
     glaucoma: patient.glaucoma ?? (ficha.condicionesMedicas?.glaucoma ? "Sí" : "No"),
     condicion: ficha.diagnostico ?? patient.diagnostico ?? patient.condicion ?? "Sin diagnóstico",
     color: patient.color ?? "blue",
-    img: patient.foto ?? patient.img ?? "https://i.pravatar.cc/150?u=" + patient.id,
+    img: patient.foto ?? patient.img ?? "https://i.pravatar.cc/150?u=" + patient.rut,
     fechaNacimiento: patient.fechaNacimiento ?? "",
     telefono: patient.telefono ?? "",
     email: patient.email ?? ""
@@ -67,12 +67,12 @@ export function useGestionPacientes() {
       .then(async ([patientsResponse, recordsResponse]) => {
         if (!patientsResponse.ok || !recordsResponse.ok) throw new Error("No se pudo cargar la información clínica");
         const [patientData, recordData] = await Promise.all([patientsResponse.json(), recordsResponse.json()]);
-        const recordsByPatient = new Map(recordData.map((record) => [record.pacienteId, record]));
+        const recordsByPatient = new Map(recordData.map((record) => [record.pacienteRut, record]));
         let savedPatients = [];
         try { savedPatients = JSON.parse(localStorage.getItem(PATIENTS_STORAGE_KEY) || "[]"); } catch (error) { console.error("Error leyendo pacientes guardados", error); }
-        const savedById = new Map(savedPatients.map((patient) => [patient.id, patient]));
+        const savedByRut = new Map(savedPatients.map((patient) => [patient.rut, patient]));
         setPatients(patientData.map((patient) => {
-          const saved = savedById.get(patient.id) || {};
+          const saved = savedByRut.get(patient.rut) || {};
           // El archivo base conserva campos que no existían en versiones anteriores, como última consulta.
           return normalizePatient({
             ...patient,
@@ -81,7 +81,7 @@ export function useGestionPacientes() {
             fechaNacimiento: saved.fechaNacimiento || patient.fechaNacimiento,
             email: saved.email || patient.email,
             ultimaConsulta: patient.ultimaConsulta,
-            ficha: recordsByPatient.get(patient.id) ?? saved.ficha
+            ficha: recordsByPatient.get(patient.rut) ?? saved.ficha
           });
         }));
       })
@@ -102,7 +102,7 @@ export function useGestionPacientes() {
   // Lógica de filtrado
   let filteredPatients = patients.filter(p => {
     const matchSearch = p.nombre.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      p.rut.toLowerCase().includes(searchQuery.toLowerCase()) ||
       p.condicion.toLowerCase().includes(searchQuery.toLowerCase());
     const matchTab = filterTab === "all" ? true : p.condicion !== "Inactivo";
     return matchSearch && matchTab;
@@ -122,7 +122,7 @@ export function useGestionPacientes() {
       const p = patients[index];
       setFormData({
         nombre: p.nombre,
-        id: p.id,
+        rut: p.rut,
         fechaNacimiento: p.fechaNacimiento ?? "",
         sexo: p.sexo,
         telefono: p.telefono ?? "",
@@ -141,7 +141,6 @@ export function useGestionPacientes() {
     if (editingIndex === -1) {
       updatedPatients.push({
         ...formData,
-        rut: formData.id,
         edad: calculateAge(formData.fechaNacimiento),
         consulta: "",
         condicion: "Sin diagnóstico",
@@ -152,7 +151,6 @@ export function useGestionPacientes() {
       updatedPatients[editingIndex] = {
         ...patients[editingIndex],
         ...formData,
-        rut: formData.id,
         edad: calculateAge(formData.fechaNacimiento, patients[editingIndex].edad)
       };
     }

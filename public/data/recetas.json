@@ -1,7 +1,7 @@
 [
   {
     "id": "R-1001",
-    "pacienteId": "P-1001",
+    "pacienteRut": "15.234.567-8",
     "fecha": "2026-06-20",
     "tipoVision": "Lejos",
     "ojoDerecho": { "esfera": "-1.25", "cilindro": "-0.50", "eje": "90", "adicion": "+1.50" },
@@ -13,7 +13,7 @@
   },
   {
     "id": "R-1002",
-    "pacienteId": "P-1002",
+    "pacienteRut": "12.345.678-9",
     "fecha": "2026-06-19",
     "tipoVision": "Lejos",
     "ojoDerecho": { "esfera": "+0.50", "cilindro": "-0.25", "eje": "100", "adicion": "+2.00" },
@@ -25,7 +25,7 @@
   },
   {
     "id": "R-1003",
-    "pacienteId": "P-1003",
+    "pacienteRut": "18.456.789-1",
     "fecha": "2026-06-17",
     "tipoVision": "Lejos",
     "ojoDerecho": { "esfera": "-2.00", "cilindro": "-0.75", "eje": "80", "adicion": "0.00" },
@@ -37,7 +37,7 @@
   },
   {
     "id": "R-1004",
-    "pacienteId": "P-1004",
+    "pacienteRut": "9.876.543-2",
     "fecha": "2026-06-16",
     "tipoVision": "Lejos",
     "ojoDerecho": { "esfera": "+1.50", "cilindro": "-1.00", "eje": "110", "adicion": "+2.50" },

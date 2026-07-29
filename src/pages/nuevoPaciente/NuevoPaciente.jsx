@@ -3,9 +3,9 @@ import './NuevoPaciente.css';
 import { Link, useParams } from 'react-router-dom';
 
 export default function NuevoPaciente() {
-  const { patientId } = useParams();
+  const { patientRut } = useParams();
   const [patients, setPatients] = useState([]);
-  const [selectedPatientId, setSelectedPatientId] = useState(patientId || '');
+  const [selectedPatientRut, setSelectedPatientRut] = useState(patientRut || '');
   const [savedMessage, setSavedMessage] = useState('');
   // ===============================
   // ESTADOS DEL FORMULARIO
@@ -24,12 +24,12 @@ export default function NuevoPaciente() {
         const [basePatients, baseFichas] = await Promise.all([patientsResponse.json(), fichasResponse.json()]);
         let stored = [];
         try { stored = JSON.parse(localStorage.getItem('visium.admin.pacientes') || '[]'); } catch { stored = []; }
-        const storedById = new Map(stored.map((patient) => [patient.id, patient]));
+        const storedByRut = new Map(stored.map((patient) => [patient.rut, patient]));
         const fichasByPatient = new Map();
-        baseFichas.forEach((ficha) => fichasByPatient.set(ficha.pacienteId, [ficha]));
+        baseFichas.forEach((ficha) => fichasByPatient.set(ficha.pacienteRut, [ficha]));
         const loadedPatients = basePatients.map((patient) => {
-          const saved = storedById.get(patient.id) || {};
-          const fichas = saved.fichas || (saved.ficha ? [saved.ficha] : fichasByPatient.get(patient.id) || []);
+          const saved = storedByRut.get(patient.rut) || {};
+          const fichas = saved.fichas || (saved.ficha ? [saved.ficha] : fichasByPatient.get(patient.rut) || []);
           return {
             ...patient,
             ...saved,
@@ -40,7 +40,7 @@ export default function NuevoPaciente() {
           };
         });
         setPatients(loadedPatients);
-        const patient = loadedPatients.find((item) => item.id === (patientId || selectedPatientId));
+        const patient = loadedPatients.find((item) => item.rut === (patientRut || selectedPatientRut));
         if (!patient) return;
         const lastRecord = patient.fichas.at(-1) || {};
         const antecedentes = patient.antecedentes || lastRecord.condicionesMedicas || {};
@@ -54,7 +54,7 @@ export default function NuevoPaciente() {
         setAlergias(antecedentes.alergias || lastRecord.alergias || []);
       })
       .catch((error) => console.error('Error cargando la ficha', error));
-  }, [patientId, selectedPatientId]);
+  }, [patientRut, selectedPatientRut]);
   
   // ===============================
   // LÓGICA DE BARRA DE PROGRESO (Estado derivado)
@@ -94,7 +94,7 @@ export default function NuevoPaciente() {
   };
 
   const handleUpdatePatient = () => {
-    const patient = patients.find((item) => item.id === selectedPatientId);
+    const patient = patients.find((item) => item.rut === selectedPatientRut);
     if (!patient) return;
 
     const updatedPatient = {
@@ -103,7 +103,7 @@ export default function NuevoPaciente() {
       telefono: formData.telefono, email: formData.email,
       antecedentes: { alergias, diabetes: formData.diabetes, hipertension: formData.hipertension, glaucoma: formData.glaucoma }
     };
-    const updatedPatients = patients.map((item) => item.id === patient.id ? updatedPatient : item);
+    const updatedPatients = patients.map((item) => item.rut === patient.rut ? updatedPatient : item);
     setPatients(updatedPatients);
     localStorage.setItem('visium.admin.pacientes', JSON.stringify(updatedPatients));
     setSavedMessage('Datos y antecedentes actualizados.');
@@ -117,10 +117,10 @@ export default function NuevoPaciente() {
             
             <section className="form-section">
               <h2>Datos Personales</h2>
-              {!patientId && <label className="patient-selector">Paciente asociado
-                <select value={selectedPatientId} onChange={(event) => setSelectedPatientId(event.target.value)}>
+              {!patientRut && <label className="patient-selector">Paciente asociado
+                <select value={selectedPatientRut} onChange={(event) => setSelectedPatientRut(event.target.value)}>
                   <option value="">Seleccionar paciente...</option>
-                  {patients.map((patient) => <option key={patient.id} value={patient.id}>{patient.nombre} · {patient.rut}</option>)}
+                  {patients.map((patient) => <option key={patient.rut} value={patient.rut}>{patient.nombre} · {patient.rut}</option>)}
                 </select>
               </label>}
               <div className="form-grid">
@@ -186,7 +186,7 @@ export default function NuevoPaciente() {
             <footer className="action-bar">
               <p className="required-note">* Campos obligatorios</p>
               <div className="action-buttons">
-                <button type="button" className="btn-secundario" onClick={handleUpdatePatient} disabled={!selectedPatientId}>
+                <button type="button" className="btn-secundario" onClick={handleUpdatePatient} disabled={!selectedPatientRut}>
                   Actualizar datos
                 </button>
                 <Link to="/recetas" className="btn-primario">Crear ficha</Link>

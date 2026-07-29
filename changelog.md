@@ -8,10 +8,12 @@
 - Se incorporó el campo Diagnóstico en la página de Recetas y en la edición de su historial administrativo.
 - Se añadió el flujo de recuperación de contraseña: correo, validación del código de demostración `111-111` y actualización de contraseña local.
 - Se añadió una página pública de contacto para Soporte Técnico, con correo, teléfono y motivo de consulta.
+- Se enlazó «Soporte Técnico» del login con la nueva página de contacto.
 - Se vinculó cada recepcionista con un usuario mediante `usuarioId` y se añadió el usuario de Marcela Soto.
 
 ### Modificado
 - Gestión de Pacientes consulta los datos JSON de pacientes y recetas; la columna «Condición» pasó a llamarse «Diagnóstico».
+- El RUT pasó a ser el identificador de pacientes; se eliminaron los IDs internos `P-100x` y las asociaciones de citas y recetas usan `pacienteRut`.
 - Los antecedentes permanecen asociados al paciente; el motivo de consulta se trasladó desde pacientes a las citas.
 - La página Ficha carga los datos del paciente seleccionado desde una cita o desde el listado de pacientes.
 - El dashboard obtiene sus citas desde `citas.json`, las ordena por hora y muestra la más temprana como cita principal.
@@ -26,12 +28,14 @@
 - Se corrigió el reconocimiento de usuarios nuevos, incluido Marcela Soto, en la gestión administrativa y recuperación de contraseña.
 - Se mejoró la responsividad de Pacientes, Gestión Administrativa, Recetas y Dashboard.
 - En pantallas angostas, el listado de pacientes se transforma en tarjetas para eliminar el desplazamiento horizontal de la tabla.
+- Se ajustó la columna Diagnóstico y el modo compacto de pacientes según el ancho real del panel.
 - Se corrigió el layout de Recetas para usar el ancho disponible y no generar un scroll interno.
 
 ### Quitado
 - Se eliminó la etiqueta «Paciente nuevo» y el botón «Estado de cita en trámite» de la tarjeta principal del dashboard.
 - Se eliminó la sección «Motivo de consulta» de la página Ficha/Paciente.
 - Se eliminó el enlace «Solicite acceso» de la pantalla de inicio de sesión.
+- Se eliminó la opción «Recordar mi sesión en este equipo» del inicio de sesión.
 - Se reemplazó `fichas.json` por `recetas.json`.
 
 ## 2026-07-24

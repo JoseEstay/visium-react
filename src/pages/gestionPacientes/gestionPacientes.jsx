@@ -75,7 +75,7 @@ export default function GestionPacientes() {
               <thead>
                 <tr>
                   <th>Paciente</th>
-                  <th>ID</th>
+                  <th>RUT</th>
                   <th>Última Consulta</th>
                   <th>Diagnóstico</th>
                   <th>Acciones</th>
@@ -83,9 +83,9 @@ export default function GestionPacientes() {
               </thead>
               <tbody>
                 {currentPatients.map((p) => {
-                  const globalIndex = patients.findIndex(pat => pat.id === p.id);
+                  const globalIndex = patients.findIndex(pat => pat.rut === p.rut);
                   return (
-                    <tr key={p.id} className="patient-row">
+                    <tr key={p.rut} className="patient-row">
                       <td className="patient" data-label="Paciente">
                         <img src={p.img} alt={p.nombre} />
                         <div>
@@ -93,14 +93,14 @@ export default function GestionPacientes() {
                           <small>{p.edad} años · {p.sexo}</small>
                         </div>
                       </td>
-                      <td data-label="ID">{p.id}</td>
+                      <td data-label="RUT">{p.rut}</td>
                       <td data-label="Última consulta">{p.consulta}</td>
                       <td data-label="Diagnóstico">
                         <span className={`badge ${p.color}`}>{p.diagnostico || "Sin diagnóstico"}</span>
                       </td>
                       <td data-label="Acciones">
                         <div className="row-actions">
-                          <button className="recipe-btn" onClick={() => navigate(`/paciente/${p.id}`)}>
+                          <button className="recipe-btn" onClick={() => navigate(`/paciente/${p.rut}`)}>
                             <i className="bi bi-file-earmark-medical"></i> Crear Receta
                           </button>
                           <button className="menu-btn action-btn" onClick={(e) => handleContextMenu(e, globalIndex)} aria-label="Más opciones">
@@ -157,8 +157,8 @@ export default function GestionPacientes() {
                 <input type="text" required value={formData.nombre} onChange={e => setFormData({ ...formData, nombre: e.target.value })} />
               </div>
               <div className="form-group">
-                <label>RUT (ID)</label>
-                <input type="text" required value={formData.id} onChange={e => setFormData({ ...formData, id: e.target.value })} />
+                <label>RUT</label>
+                <input type="text" required value={formData.rut} onChange={e => setFormData({ ...formData, rut: e.target.value })} />
               </div>
               <div className="form-row">
                 <div className="form-group">

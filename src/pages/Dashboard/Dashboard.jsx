@@ -23,7 +23,7 @@ export default function Dashboard() {
   const statusClass = (status) => `status-${(status || "").toLowerCase().replace(" ", "-").normalize("NFD").replace(/[\u0300-\u036f]/g, "")}`;
 
   const irFicha = () => {
-    if (nextAppointment) navigate(`/paciente/${nextAppointment.pacienteId}`);
+    if (nextAppointment) navigate(`/paciente/${nextAppointment.pacienteRut}`);
   };
 
   return (

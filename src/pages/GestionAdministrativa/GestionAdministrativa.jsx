@@ -43,17 +43,18 @@ export default function GestionAdministrativa() {
           if (!patientsResponse.ok || !recordsResponse.ok) throw new Error("No se pudo cargar la información clínica");
           const [patients, fichas] = await Promise.all([patientsResponse.json(), recordsResponse.json()]);
           const fichasPorPaciente = new Map();
-          fichas.forEach((ficha) => fichasPorPaciente.set(ficha.pacienteId, [...(fichasPorPaciente.get(ficha.pacienteId) || []), ficha]));
+          fichas.forEach((ficha) => fichasPorPaciente.set(ficha.pacienteRut, [...(fichasPorPaciente.get(ficha.pacienteRut) || []), ficha]));
           let savedRecords = [];
           try { savedRecords = JSON.parse(localStorage.getItem(storageKey) || "[]"); } catch (error) { console.error("Error leyendo pacientes guardados", error); }
-          const savedById = new Map(savedRecords.map((record) => [record.id, record]));
+          const savedByRut = new Map(savedRecords.map((record) => [record.rut, record]));
           setRecords(patients.map((patient) => {
-            const saved = savedById.get(patient.id) || {};
-            const recetas = saved.recetas || fichasPorPaciente.get(patient.id) || [];
+            const saved = savedByRut.get(patient.rut) || {};
+            const recetas = saved.recetas || fichasPorPaciente.get(patient.rut) || [];
             const ficha = recetas.at(-1) || {};
             return {
               ...patient,
               ...saved,
+              id: patient.rut,
               ultimaConsulta: patient.ultimaConsulta,
               ficha,
               recetas,
@@ -104,10 +105,11 @@ export default function GestionAdministrativa() {
   if (!config || !allowed) return <Navigate to="/notFound" replace />;
 
   const formFields = config.formFields || config.fields;
+  const recordIdentifier = (record) => resource === "pacientes" ? record.rut : record.id;
   const openForm = (record = null) => {
     if (record) { setForm({ ...record }); return; }
     const branch = user?.sucursalId === "S-001" ? "Visium Santiago Centro" : user?.sucursalId === "S-002" ? "Visium Providencia" : "";
-    setForm({ id: `${resource.slice(0, 2).toUpperCase()}-${Date.now()}`, ...Object.fromEntries(formFields.map((field) => [field, ""])), ...(resource === "recepcionistas" && user?.rol === "administrador sucursal" ? { sucursalId: user.sucursalId, sucursal: branch } : {}) });
+    setForm({ ...(resource === "pacientes" ? {} : { id: `${resource.slice(0, 2).toUpperCase()}-${Date.now()}` }), ...Object.fromEntries(formFields.map((field) => [field, ""])), ...(resource === "recepcionistas" && user?.rol === "administrador sucursal" ? { sucursalId: user.sucursalId, sucursal: branch } : {}) });
   };
   const save = (event) => {
     event.preventDefault();
@@ -133,28 +135,28 @@ export default function GestionAdministrativa() {
       },
       ficha: {
         ...(form.ficha || {}),
-        id: form.ficha?.id || `F-${form.id}`,
-        pacienteId: form.id,
+        id: form.ficha?.id || `R-${form.rut}`,
+        pacienteRut: form.rut,
         diagnostico: form.diagnostico,
         motivoConsulta: form.ficha?.motivoConsulta ?? ""
       }
     } : form;
-    setRecords((current) => current.some((record) => record.id === savedForm.id) ? current.map((record) => record.id === savedForm.id ? savedForm : record) : [...current, savedForm]);
+    setRecords((current) => current.some((record) => recordIdentifier(record) === recordIdentifier(savedForm)) ? current.map((record) => recordIdentifier(record) === recordIdentifier(savedForm) ? savedForm : record) : [...current, savedForm]);
     setForm(null);
   };
   const remove = (id) => {
     if (!window.confirm("¿Desea eliminar este registro?")) return;
-    const target = records.find((record) => record.id === id);
+    const target = records.find((record) => recordIdentifier(record) === id);
     if (resource === "recepcionistas" && target?.usuarioId) {
       const updatedUsers = linkedUsers.filter((item) => item.id !== target.usuarioId);
       setLinkedUsers(updatedUsers);
       localStorage.setItem("visium.usuarios", JSON.stringify(updatedUsers));
     }
-    setRecords((current) => current.filter((record) => record.id !== id));
+    setRecords((current) => current.filter((record) => recordIdentifier(record) !== id));
   };
   const removeRecipe = (recipeId) => {
     if (!historyPatient || !window.confirm("¿Desea eliminar esta ficha del historial?")) return;
-    setRecords((current) => current.map((patient) => patient.id !== historyPatient.id ? patient : {
+    setRecords((current) => current.map((patient) => patient.rut !== historyPatient.rut ? patient : {
       ...patient,
       recetas: (patient.recetas || []).filter((recipe) => recipe.id !== recipeId),
       ficha: (patient.recetas || []).filter((recipe) => recipe.id !== recipeId).at(-1) || {}
@@ -163,7 +165,7 @@ export default function GestionAdministrativa() {
   };
   const saveRecipe = (event) => {
     event.preventDefault();
-    setRecords((current) => current.map((patient) => patient.id !== historyPatient.id ? patient : {
+    setRecords((current) => current.map((patient) => patient.rut !== historyPatient.rut ? patient : {
       ...patient,
       recetas: (patient.recetas || []).map((recipe) => recipe.id === recipeForm.id ? recipeForm : recipe),
       ficha: recipeForm
