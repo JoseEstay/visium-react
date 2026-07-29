@@ -1,0 +1,4 @@
+[
+  { "id": "P-1001", "nombre": "María González", "rut": "15.234.567-8", "telefono": "+56 9 1234 5678", "sucursal": "Visium Santiago Centro", "ficha": "Glaucoma avanzado" },
+  { "id": "P-1002", "nombre": "Carlos Soto", "rut": "12.345.678-9", "telefono": "+56 9 2345 6789", "sucursal": "Visium Santiago Centro", "ficha": "Control post-operatorio" }
+]

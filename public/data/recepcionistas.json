@@ -1,0 +1,4 @@
+[
+  { "id": "RE-001", "nombre": "Carolina Díaz", "email": "carolina.diaz@visium.cl", "telefono": "+56 9 3456 7890", "sucursal": "Visium Santiago Centro" },
+  { "id": "RE-002", "nombre": "Marcela Soto", "email": "marcela.soto@visium.cl", "telefono": "+56 9 5678 1234", "sucursal": "Visium Providencia" }
+]

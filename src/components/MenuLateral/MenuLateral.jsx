@@ -14,6 +14,13 @@ const navigationItems = [
 
 export default function MenuLateral() {
   const [isOpen, setIsOpen] = useState(false);
+  const [adminOpen, setAdminOpen] = useState(false);
+  const user = JSON.parse(localStorage.getItem("usuarioActual") || "null");
+  const adminItems = user?.rol === "administrador sucursales"
+    ? ["sucursales", "profesionales", "recepcionistas", "citas", "pacientes"]
+    : user?.rol === "administrador sucursal"
+      ? ["profesionales", "recepcionistas", "citas", "pacientes"]
+      : [];
 
   const toggleMenu = () => setIsOpen((open) => !open);
   const closeMenu = () => setIsOpen(false);
@@ -63,6 +70,15 @@ export default function MenuLateral() {
             <span className="nav-label">{label}</span>
           </NavLink>
         ))}
+        {adminItems.length > 0 && <div className="admin-navigation">
+          <button type="button" className="admin-toggle" onClick={() => setAdminOpen((open) => !open)} aria-expanded={adminOpen}>
+            <i className="bi bi-gear-fill" /><span className="nav-label">Gestión Administrativa</span><i className={`bi bi-chevron-${adminOpen ? "up" : "down"} admin-chevron`} />
+          </button>
+          {adminOpen && <div className="admin-submenu">
+            {adminItems.map((item) => <NavLink key={item} to={`/gestion-administrativa/${item}`} onClick={closeMenu}><i className="bi bi-chevron-right" /><span className="nav-label">{item === "pacientes" ? "Pacientes y fichas" : item.charAt(0).toUpperCase() + item.slice(1)}</span></NavLink>)}
+            <NavLink to="/gestion-administrativa/contrasenas" onClick={closeMenu}><i className="bi bi-key" /><span className="nav-label">Contraseñas</span></NavLink>
+          </div>}
+        </div>}
       </nav>
 
       <div className="sidebar-bottom">

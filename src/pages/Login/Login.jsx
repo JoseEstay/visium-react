@@ -14,13 +14,15 @@ function Login() {
 
   const logueado = (e) => {
     e.preventDefault();
-
-    if (medico === "prueba1@gmail.com" && password === "prueba123") {
-      localStorage.setItem("sesionIniciada", "true");
-      navigate("/dashboard");
-    } else {
-      alert("Datos incorrectos");
-    }
+    const storedUsers = localStorage.getItem("visium.usuarios");
+    (storedUsers ? Promise.resolve(JSON.parse(storedUsers)) : fetch("/data/usuarios.json").then((response) => response.json()))
+      .then((usuarios) => {
+        const usuario = usuarios.find((item) => item.email === medico && item.password === password);
+        if (!usuario) { alert("Datos incorrectos"); return; }
+        localStorage.setItem("sesionIniciada", "true");
+        localStorage.setItem("usuarioActual", JSON.stringify(usuario));
+        navigate("/dashboard");
+      });
   };
 
   return (

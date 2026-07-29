@@ -1,0 +1,4 @@
+[
+  { "id": "C-001", "paciente": "María González", "profesional": "Dra. Paula Silva", "fecha": "2026-07-29 09:00", "estado": "Confirmada", "sucursal": "Visium Santiago Centro" },
+  { "id": "C-002", "paciente": "Carlos Soto", "profesional": "Dra. Paula Silva", "fecha": "2026-07-29 10:30", "estado": "Pendiente", "sucursal": "Visium Santiago Centro" }
+]

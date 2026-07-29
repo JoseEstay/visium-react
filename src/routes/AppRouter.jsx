@@ -10,6 +10,8 @@ import GestionCitas from "../pages/Citas/GestionCitas";
 import GestionPacientes from "../pages/gestionPacientes/gestionPacientes";
 import NotFound from "../pages/notfound/NotFound";
 import RutaProtegida from "../pages/Login/RutaProtegida";
+import GestionAdministrativa from "../pages/GestionAdministrativa/GestionAdministrativa";
+import GestionContrasenas from "../pages/GestionContrasenas/GestionContrasenas";
 export default function AppRouter() {
   return (
     <BrowserRouter>
@@ -26,6 +28,8 @@ export default function AppRouter() {
           <Route path="/gestionPacientes" element={<GestionPacientes />} />
           <Route path="/recetas" element={<Recetas />} />
           <Route path="/citas" element={<GestionCitas />} />
+          <Route path="/gestion-administrativa/:resource" element={<GestionAdministrativa />} />
+          <Route path="/gestion-administrativa/contrasenas" element={<GestionContrasenas />} />
           </Route>
 
         </Route>

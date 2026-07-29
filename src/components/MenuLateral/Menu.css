@@ -185,6 +185,7 @@
 
 /* Enlaces de Navegación */
 .sidebar .menu a,
+.sidebar .menu .admin-toggle,
 .sidebar .sidebar-bottom a {
   display: flex;
   align-items: center;
@@ -197,6 +198,7 @@
   text-decoration: none;
   transition: background-color 0.2s ease, color 0.2s ease;
 }
+.sidebar .menu .admin-toggle{width:100%;border:0;background:transparent;text-align:left;cursor:pointer}.sidebar .menu .admin-toggle:hover{background:#fff;color:#003896}.admin-chevron{margin-left:auto;font-size:12px!important}.admin-submenu{display:flex;flex-direction:column;padding-left:14px}.sidebar .menu .admin-submenu a{padding-top:9px;padding-bottom:9px;font-size:13px}
 
 .sidebar .nav-label {
   position: relative;

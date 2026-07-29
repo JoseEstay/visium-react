@@ -1,0 +1,6 @@
+[
+  { "id": "U-001", "nombre": "Ana Morales", "email": "admin.sucursales@visium.cl", "password": "prueba123", "rol": "administrador sucursales", "sucursalId": null },
+  { "id": "U-002", "nombre": "Diego Rojas", "email": "admin.sucursal@visium.cl", "password": "prueba123", "rol": "administrador sucursal", "sucursalId": "S-001" },
+  { "id": "U-003", "nombre": "Dra. Paula Silva", "email": "prueba1@gmail.com", "password": "prueba123", "rol": "profesional", "sucursalId": "S-001" },
+  { "id": "U-004", "nombre": "Carolina Díaz", "email": "recepcion@visium.cl", "password": "prueba123", "rol": "recepcionista", "sucursalId": "S-001" }
+]
