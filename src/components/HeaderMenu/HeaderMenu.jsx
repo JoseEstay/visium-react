@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 export default function HeaderMenu() {
 
   const navigate= useNavigate();
+  const usuario = JSON.parse(localStorage.getItem("usuarioActual") || "null");
   const handleBack = () => {
     if (window.history.state && window.history.state.idx > 0) {
       navigate(-1);
@@ -45,8 +46,8 @@ export default function HeaderMenu() {
         </button>
        
         <div className="profile">
-          <img src="https://i.pravatar.cc/100?img=12" alt="Doctor" />
-          <span>Perfil</span>
+          <img src="https://i.pravatar.cc/100?img=12" alt="Usuario" />
+          <span>{usuario?.nombre || "Usuario"}</span>
         </div>
       </div>
     </header>

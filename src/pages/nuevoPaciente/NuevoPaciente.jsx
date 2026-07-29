@@ -1,8 +1,12 @@
-import  { useState } from 'react';
+import  { useEffect, useState } from 'react';
 import './NuevoPaciente.css';
-import { Link } from 'react-router';
+import { Link, useParams } from 'react-router-dom';
 
 export default function NuevoPaciente() {
+  const { patientId } = useParams();
+  const [patients, setPatients] = useState([]);
+  const [selectedPatientId, setSelectedPatientId] = useState(patientId || '');
+  const [savedMessage, setSavedMessage] = useState('');
   // ===============================
   // ESTADOS DEL FORMULARIO
   // ===============================
@@ -13,6 +17,44 @@ export default function NuevoPaciente() {
   
   const [alergias, setAlergias] = useState(['Penicilina', 'Latex']);
   const [alergiaInput, setAlergiaInput] = useState('');
+
+  useEffect(() => {
+    Promise.all([fetch('/data/pacientes.json'), fetch('/data/recetas.json')])
+      .then(async ([patientsResponse, fichasResponse]) => {
+        const [basePatients, baseFichas] = await Promise.all([patientsResponse.json(), fichasResponse.json()]);
+        let stored = [];
+        try { stored = JSON.parse(localStorage.getItem('visium.admin.pacientes') || '[]'); } catch { stored = []; }
+        const storedById = new Map(stored.map((patient) => [patient.id, patient]));
+        const fichasByPatient = new Map();
+        baseFichas.forEach((ficha) => fichasByPatient.set(ficha.pacienteId, [ficha]));
+        const loadedPatients = basePatients.map((patient) => {
+          const saved = storedById.get(patient.id) || {};
+          const fichas = saved.fichas || (saved.ficha ? [saved.ficha] : fichasByPatient.get(patient.id) || []);
+          return {
+            ...patient,
+            ...saved,
+            // Registros creados antes de incorporar estos campos pueden contener cadenas vacías.
+            fechaNacimiento: saved.fechaNacimiento || patient.fechaNacimiento,
+            email: saved.email || patient.email,
+            fichas
+          };
+        });
+        setPatients(loadedPatients);
+        const patient = loadedPatients.find((item) => item.id === (patientId || selectedPatientId));
+        if (!patient) return;
+        const lastRecord = patient.fichas.at(-1) || {};
+        const antecedentes = patient.antecedentes || lastRecord.condicionesMedicas || {};
+        setFormData({
+          nombre: patient.nombre || '', rut: patient.rut || '', fecha: patient.fechaNacimiento || '', sexo: (patient.sexo || '').toLowerCase(),
+          telefono: patient.telefono || '', email: patient.email || '', motivo: patient.motivoConsulta || '',
+          diabetes: antecedentes.diabetes ?? false,
+          hipertension: antecedentes.hipertension ?? false,
+          glaucoma: antecedentes.glaucoma ?? false
+        });
+        setAlergias(antecedentes.alergias || lastRecord.alergias || []);
+      })
+      .catch((error) => console.error('Error cargando la ficha', error));
+  }, [patientId, selectedPatientId]);
   
   // ===============================
   // LÓGICA DE BARRA DE PROGRESO (Estado derivado)
@@ -51,6 +93,23 @@ export default function NuevoPaciente() {
     setAlergias(alergias.filter((_, index) => index !== indexToRemove));
   };
 
+  const handleUpdatePatient = () => {
+    const patient = patients.find((item) => item.id === selectedPatientId);
+    if (!patient) return;
+
+    const updatedPatient = {
+      ...patient,
+      nombre: formData.nombre, rut: formData.rut, fechaNacimiento: formData.fecha, sexo: formData.sexo,
+      telefono: formData.telefono, email: formData.email,
+      motivoConsulta: formData.motivo,
+      antecedentes: { alergias, diabetes: formData.diabetes, hipertension: formData.hipertension, glaucoma: formData.glaucoma }
+    };
+    const updatedPatients = patients.map((item) => item.id === patient.id ? updatedPatient : item);
+    setPatients(updatedPatients);
+    localStorage.setItem('visium.admin.pacientes', JSON.stringify(updatedPatients));
+    setSavedMessage('Datos y antecedentes actualizados.');
+  };
+
   return (
     <>
       {/* Contenido Principal */}
@@ -59,6 +118,12 @@ export default function NuevoPaciente() {
             
             <section className="form-section">
               <h2>Datos Personales</h2>
+              {!patientId && <label className="patient-selector">Paciente asociado
+                <select value={selectedPatientId} onChange={(event) => setSelectedPatientId(event.target.value)}>
+                  <option value="">Seleccionar paciente...</option>
+                  {patients.map((patient) => <option key={patient.id} value={patient.id}>{patient.nombre} · {patient.rut}</option>)}
+                </select>
+              </label>}
               <div className="form-grid">
                 <label>Nombre completo
                   <input type="text" id="nombre" value={formData.nombre} onChange={handleInputChange} placeholder="Ej: Juan Pérez González" />
@@ -134,10 +199,12 @@ export default function NuevoPaciente() {
             <footer className="action-bar">
               <p className="required-note">* Campos obligatorios</p>
               <div className="action-buttons">
-                <Link to="/recetas" className="btn-secundario" >
-                  Crear Ficha
-               </Link>
+                <button type="button" className="btn-secundario" onClick={handleUpdatePatient} disabled={!selectedPatientId}>
+                  Actualizar datos
+                </button>
+                <Link to="/recetas" className="btn-primario">Crear ficha</Link>
               </div>
+              {savedMessage && <p className="save-message" role="status">{savedMessage}</p>}
             </footer>
           </div>
 

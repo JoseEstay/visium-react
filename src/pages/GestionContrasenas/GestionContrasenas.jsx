@@ -4,6 +4,7 @@ import "./GestionContrasenas.css";
 
 const allowedTargets = {
   "administrador sucursales": ["administrador sucursal", "recepcionista"],
+  jefe: ["administrador sucursal", "recepcionista"],
   "administrador sucursal": ["recepcionista"],
 };
 

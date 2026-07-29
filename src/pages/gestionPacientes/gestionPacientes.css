@@ -478,6 +478,7 @@
         width: 100%;
         overflow-x: auto;
         overscroll-behavior-x: contain;
+        -webkit-overflow-scrolling: touch;
     }
 
     tbody tr {
@@ -980,6 +981,42 @@
 
         .modal-content form {
             padding: 20px;
+        }
+    }
+
+    @media (min-width: 768px) and (max-width: 1100px) {
+        .dashboard {
+            padding: 24px;
+        }
+
+        .cards {
+            gap: 16px;
+        }
+
+        .patients-container {
+            padding: 20px;
+        }
+
+        .patients-table-scroll table {
+            min-width: 680px;
+        }
+
+        th,
+        td {
+            padding: 13px 10px;
+        }
+
+        .patient {
+            gap: 10px;
+        }
+
+        .patient img {
+            width: 44px;
+            height: 44px;
+        }
+
+        .recipe-btn {
+            padding: 10px 12px;
         }
     }
 

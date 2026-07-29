@@ -25,6 +25,7 @@ export default function AppRouter() {
         <Route element={<MainLayout />}>
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/paciente" element={<NuevoPaciente />} />
+          <Route path="/paciente/:patientId" element={<NuevoPaciente />} />
           <Route path="/gestionPacientes" element={<GestionPacientes />} />
           <Route path="/recetas" element={<Recetas />} />
           <Route path="/citas" element={<GestionCitas />} />

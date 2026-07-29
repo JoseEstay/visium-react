@@ -1,17 +1,16 @@
-import React from 'react';
 import './Recetas.css'; // Asegúrate de que el archivo CSS esté en la misma carpeta
 
 const RecetaPage = () => {
     return (
         <div className="layout-unificado">
             {/* SIDEBAR */}
-            
+
 
             {/* CONTENIDO PRINCIPAL */}
             <div className="contenido-unificado">
 
                 {/* NAVBAR */}
-            
+
 
                 {/* BREADCRUMB */}
                 <div className="breadcrumb-bar">
@@ -48,9 +47,9 @@ const RecetaPage = () => {
                     {/* GRID RECETA */}
                     <section className="contenido-receta d-flex justify-content-center">
 
-                    
+
                         <div>
-                            
+
                             <div className="receta-card">
                                 <div className="titulo-receta">
                                     <h2><i className="fa-solid fa-glasses text-primary"></i> Receta Óptica (Refracción)</h2>
@@ -110,6 +109,12 @@ const RecetaPage = () => {
                             {/* Tarjeta Observaciones */}
                             <div className="receta-card">
                                 <div className="grupo mb-0">
+                                    <label htmlFor="diagnostico-receta">Diagnóstico</label>
+                                    <input
+                                        id="diagnostico-receta"
+                                        type="text"
+                                        placeholder="Ej. Miopía, glaucoma, catarata..."
+                                    />
                                     <label className="d-flex align-items-center gap-2 text-dark">
                                         <i className="fa-solid fa-bars-staggered text-muted"></i> Indicaciones Clínicas y Observaciones
                                     </label>

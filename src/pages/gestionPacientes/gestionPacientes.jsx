@@ -1,7 +1,9 @@
 import { useGestionPacientes } from './useGestionPacientes';
+import { useNavigate } from 'react-router-dom';
 import './gestionPacientes.css';
 
 export default function GestionPacientes() {
+  const navigate = useNavigate();
   // Extraemos toda la lógica y estados de nuestro Custom Hook
   const {
     patients, currentPage, setCurrentPage,
@@ -75,7 +77,7 @@ export default function GestionPacientes() {
                   <th>Paciente</th>
                   <th>ID</th>
                   <th>Última Consulta</th>
-                  <th>Condición</th>
+                  <th>Diagnóstico</th>
                   <th>Acciones</th>
                 </tr>
               </thead>
@@ -94,11 +96,11 @@ export default function GestionPacientes() {
                       <td>{p.id}</td>
                       <td>{p.consulta}</td>
                       <td>
-                        <span className={`badge ${p.color}`}>{p.condicion}</span>
+                        <span className={`badge ${p.color}`}>{p.diagnostico || "Sin diagnóstico"}</span>
                       </td>
                       <td>
                         <div className="row-actions">
-                          <button className="recipe-btn" onClick={() => alert("Módulo de recetas")}>
+                          <button className="recipe-btn" onClick={() => navigate(`/paciente/${p.id}`)}>
                             <i className="bi bi-file-earmark-medical"></i> Crear Receta
                           </button>
                           <button className="menu-btn action-btn" onClick={(e) => handleContextMenu(e, globalIndex)} aria-label="Más opciones">
