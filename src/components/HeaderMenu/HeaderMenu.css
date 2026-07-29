@@ -46,6 +46,13 @@
   display: flex;
   justify-content: flex-start; 
   max-width: 420px;
+  position: relative;
+  z-index: 20;
+}
+
+.search-wrapper {
+  position: relative;
+  width: 100%;
 }
 
 .search-box {
@@ -71,6 +78,66 @@
 
 .search-box i {
   color: #8d99ae;
+}
+
+.patient-results {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 30;
+  width: 100%;
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  background: #fff;
+  border: 1px solid #e3e7ef;
+  border-radius: 10px;
+  box-shadow: 0 12px 26px rgba(15, 23, 42, .16);
+  max-height: min(360px, calc(100vh - 100px));
+  overflow-y: auto;
+}
+
+.patient-results button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px;
+  border: 0;
+  border-radius: 7px;
+  color: #1e293b;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.patient-results button:hover,
+.patient-results button:focus-visible {
+  background: #eef5ff;
+  outline: none;
+}
+
+.patient-results img {
+  flex: 0 0 auto;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.patient-results span,
+.patient-results small {
+  display: block;
+}
+
+.patient-results strong {
+  font-size: 14px;
+}
+
+.patient-results small {
+  margin-top: 2px;
+  color: #64748b;
+  font-size: 12px;
 }
 
 .topbar-right {

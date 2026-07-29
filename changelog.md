@@ -3,7 +3,8 @@
 
 ### Añadido
 - Se incorporaron archivos de datos para pacientes, citas, recetas, recepcionistas y usuarios vinculados.
-- Se añadió `recetas.json`, asociado por `pacienteId`, con graduación óptica, distancia pupilar, material, diagnóstico e indicaciones clínicas.
+- Se añadió `recetas.json`, asociado por `pacienteRut`, con graduación óptica, distancia pupilar, material, diagnóstico e indicaciones clínicas.
+- Se añadió la búsqueda predictiva de pacientes en el encabezado, con acceso directo a su ficha desde cada resultado.
 - Se agregó el historial de recetas por paciente en Gestión Administrativa, con opciones para editar y eliminar registros.
 - Se incorporó el campo Diagnóstico en la página de Recetas y en la edición de su historial administrativo.
 - Se añadió el flujo de recuperación de contraseña: correo, validación del código de demostración `111-111` y actualización de contraseña local.
@@ -58,6 +59,7 @@
 - Se redujo el espacio vertical vacío del menú lateral en su versión responsiva.
 - Se mejoró la responsividad de Gestión de Pacientes, incluyendo tarjetas, tablas, acciones y paginación.
 - Se actualizó el encabezado de Gestión de Pacientes.
+- La búsqueda del encabezado reconoce coincidencias por nombre y RUT, tolerando formatos con o sin puntos.
 - Se ajustó el fondo global y del header a un blanco suave para reducir el brillo visual.
 - Se alineó el color del botón «Nuevo Paciente» con el azul del menú lateral, incluyendo su estado hover.
 - Se alineó el botón de más opciones junto al botón «Crear Receta».
