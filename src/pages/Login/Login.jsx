@@ -33,7 +33,7 @@ function Login() {
 
           <div className="col-md-12 col-lg-5 d-none d-md-flex panel-left">
             <div>
-              <div className="brand-title">Visium</div>
+              <Link to="/" className="brand-title">Visium</Link>
 
               <div className="brand-subtitle">
                 Plataforma Integral para Médicos Tratantes
@@ -66,11 +66,11 @@ function Login() {
           {/* PANEL DERECHO */}
 
           <div className="col-12 col-lg-7 panel-right">
-            <div className="logo-row">
+            <Link to="/" className="logo-row" aria-label="Ir al inicio de Visium">
               <i className="bi bi-eye-fill"></i>
 
               <span>Visium</span>
-            </div>
+            </Link>
 
             <h1 className="form-heading">Portal de Médico Tratante</h1>
 

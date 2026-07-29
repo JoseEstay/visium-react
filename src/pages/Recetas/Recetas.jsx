@@ -1,6 +1,11 @@
 import './Recetas.css'; // Asegúrate de que el archivo CSS esté en la misma carpeta
+import { useEffect } from "react";
 
 const RecetaPage = () => {
+    useEffect(() => {
+        window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    }, []);
+
     return (
         <div className="layout-unificado">
             {/* SIDEBAR */}

@@ -171,16 +171,29 @@
 }
 
 .sidebar.is-open .menu {
-  max-height: 360px;
+  max-height: none;
+  overflow: visible;
   padding-top: 12px;
   padding-bottom: 4px;
 }
 
 .sidebar.is-open .sidebar-bottom {
-  max-height: 80px;
+  max-height: none;
+  overflow: visible;
   margin-top: 8px;
   padding-top: 12px;
   border-top-color: rgba(255, 255, 255, 0.45);
+}
+
+/* En móvil, el panel abierto conserva el alto de la pantalla y desplaza su propio contenido. */
+.sidebar.is-open {
+  height: 100dvh;
+  max-height: 100dvh;
+  align-content: start;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
 }
 
 /* Enlaces de Navegación */
@@ -243,7 +256,6 @@
   text-align: center;
   font-size: 18px;
 }
-
 
 /* ============================================================
    2. MEDIA QUERY: TABLETS (Desde 768px hasta 1023px)

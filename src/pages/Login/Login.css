@@ -49,9 +49,12 @@
 }
 
 .brand-title {
+    display: inline-block;
     margin: 0 0 12px;
     font-size: 1.3rem;
     font-weight: 700;
+    color: inherit;
+    text-decoration: none;
 }
 
 .brand-subtitle {
@@ -122,6 +125,14 @@
     font-size: 1.3rem;
     font-weight: 700;
     line-height: 1;
+    text-decoration: none;
+}
+
+.brand-title:hover,
+.logo-row:hover {
+    color: inherit;
+    text-decoration: none;
+    opacity: .82;
 }
 
 .logo-row i {

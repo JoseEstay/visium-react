@@ -12,6 +12,8 @@
 - Se añadió una página pública de contacto para Soporte Técnico, con correo, teléfono y motivo de consulta.
 - Se enlazó «Soporte Técnico» del login con la nueva página de contacto.
 - Se vinculó cada recepcionista con un usuario mediante `usuarioId` y se añadió el usuario de Marcela Soto.
+- Se añadió la página pública «Solicitar demo», con formulario para registrar datos de contacto, empresa, cargo, sucursales y mensaje.
+- Se añadió `solicitudes-demo.json` como fuente de datos inicial para las solicitudes de demostración, que se persisten localmente en formato JSON.
 
 ### Modificado
 - Gestión de Pacientes consulta los datos JSON de pacientes y recetas; la columna «Condición» pasó a llamarse «Diagnóstico».
@@ -24,6 +26,11 @@
 - Los administradores de sucursal sólo pueden visualizar, crear y administrar recepcionistas y usuarios pertenecientes a su propia sucursal.
 - La opción «Métricas» quedó limitada a administradores y jefes.
 - Se actualizaron los rótulos de navegación administrativa a «Pacientes y recetas».
+- El texto «Visium» del login ahora enlaza a la página de inicio.
+- Los enlaces «Solicitar Demo» del encabezado y «Agenda una demo» del pie dirigen al formulario de demostración.
+- El botón «Crear ficha» abre la página de recetas desde el inicio de la vista.
+- El menú público actualiza el enlace activo entre «Inicio» y «Sobre Nosotros» según la sección visible.
+- Al seleccionar un usuario en Contraseñas, la vista se desplaza y enfoca el campo «Nueva contraseña».
 
 ### Corregido
 - Se corrigió la carga de última consulta, fecha de nacimiento y correo al combinar datos JSON con registros antiguos de `localStorage`.
@@ -33,12 +40,16 @@
 - En pantallas angostas, el listado de pacientes se transforma en tarjetas para eliminar el desplazamiento horizontal de la tabla.
 - Se ajustó la columna Diagnóstico y el modo compacto de pacientes según el ancho real del panel.
 - Se corrigió el layout de Recetas para usar el ancho disponible y no generar un scroll interno.
+- Se habilitó el desplazamiento vertical del menú lateral abierto en móvil, permitiendo acceder a todas las opciones administrativas.
+- Las secciones de Gestión Administrativa y Contraseñas ahora se abren desde la parte superior de la página.
+- Se mejoró el estilo y el foco del campo «Indicaciones» al editar una ficha administrativa.
 
 ### Quitado
 - Se eliminó la etiqueta «Paciente nuevo» y el botón «Estado de cita en trámite» de la tarjeta principal del dashboard.
 - Se eliminó la sección «Motivo de consulta» de la página Ficha/Paciente.
 - Se eliminó el enlace «Solicite acceso» de la pantalla de inicio de sesión.
 - Se eliminó la opción «Recordar mi sesión en este equipo» del inicio de sesión.
+- Se eliminó el acceso duplicado «Portal Médico» del listado de navegación pública; se mantiene el botón principal de ingreso.
 - Se reemplazó `fichas.json` por `recetas.json`.
 
 ## 2026-07-24

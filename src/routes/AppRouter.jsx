@@ -14,6 +14,7 @@ import GestionAdministrativa from "../pages/GestionAdministrativa/GestionAdminis
 import GestionContrasenas from "../pages/GestionContrasenas/GestionContrasenas";
 import RecuperarContrasena from "../pages/Login/RecuperarContrasena";
 import Contacto from "../pages/Login/Contacto";
+import SolicitudDemo from "../pages/SolicitudDemo/SolicitudDemo";
 export default function AppRouter() {
   return (
     <BrowserRouter>
@@ -40,6 +41,7 @@ export default function AppRouter() {
         <Route path="/login" element={<Login />} />
         <Route path="/recuperar-contrasena" element={<RecuperarContrasena />} />
         <Route path="/contacto" element={<Contacto />} />
+        <Route path="/solicitar-demo" element={<SolicitudDemo />} />
         <Route path="/notFound" element={<NotFound />} />
         <Route path="*" element={<Navigate to="/NotFound" replace />} />
 

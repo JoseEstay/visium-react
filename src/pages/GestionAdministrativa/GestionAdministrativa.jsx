@@ -37,6 +37,10 @@ export default function GestionAdministrativa() {
   const [showUserPassword, setShowUserPassword] = useState(false);
 
   useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  }, [resource]);
+
+  useEffect(() => {
     if (!config || !allowed) return;
     if (resource === "pacientes") {
       Promise.all([fetch("/data/pacientes.json"), fetch("/data/recetas.json")])
