@@ -2,7 +2,7 @@
    1. ESTILOS BASE Y ESCRITORIO
    ============================================================ */
 .topbar {
-  background: white;
+  background: #f8fafc;
   min-height: 70px;
   display: flex;
   justify-content: space-between;
@@ -79,10 +79,10 @@
   gap: 16px;
 }
 
-.btn-primary {
+.topbar .btn-primary {
   border: none;
   cursor: pointer;
-  background: #0b5ed7;
+  background-color: #003896 !important;
   color: white;
   border-radius: 10px;
   padding: 10px 18px;
@@ -96,8 +96,8 @@
   white-space: nowrap;
 }
 
-.btn-primary:hover {
-  background: #0849a6;
+.topbar .btn-primary:hover {
+  background-color: #002d72 !important;
   transform: translateY(-2px);
 }
 

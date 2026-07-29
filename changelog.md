@@ -58,6 +58,8 @@
 - Se redujo el espacio vertical vacío del menú lateral en su versión responsiva.
 - Se mejoró la responsividad de Gestión de Pacientes, incluyendo tarjetas, tablas, acciones y paginación.
 - Se actualizó el encabezado de Gestión de Pacientes.
+- Se ajustó el fondo global y del header a un blanco suave para reducir el brillo visual.
+- Se alineó el color del botón «Nuevo Paciente» con el azul del menú lateral, incluyendo su estado hover.
 - Se alineó el botón de más opciones junto al botón «Crear Receta».
 - Se limitó la edición de pacientes a nombre completo, RUT, fecha de nacimiento, sexo biológico, teléfono y email.
 - Se actualizó automáticamente la edad del paciente a partir de su fecha de nacimiento.
