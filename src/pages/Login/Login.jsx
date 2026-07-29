@@ -126,6 +126,7 @@ function Login() {
                     type="button"
                     className="toggle-eye"
                     onClick={() => setMostrarPassword(!mostrarPassword)}
+                    aria-label={mostrarPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
                   >
                     <i
                       className={

@@ -31,8 +31,8 @@ export default function AppRouter() {
           <Route path="/gestionPacientes" element={<GestionPacientes />} />
           <Route path="/recetas" element={<Recetas />} />
           <Route path="/citas" element={<GestionCitas />} />
-          <Route path="/gestion-administrativa/:resource" element={<GestionAdministrativa />} />
           <Route path="/gestion-administrativa/contrasenas" element={<GestionContrasenas />} />
+          <Route path="/gestion-administrativa/:resource" element={<GestionAdministrativa />} />
           </Route>
 
         </Route>

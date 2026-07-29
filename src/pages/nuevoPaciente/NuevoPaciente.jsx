@@ -22,9 +22,9 @@ export default function NuevoPaciente() {
     Promise.all([fetch('/data/pacientes.json'), fetch('/data/recetas.json')])
       .then(async ([patientsResponse, fichasResponse]) => {
         const [basePatients, baseFichas] = await Promise.all([patientsResponse.json(), fichasResponse.json()]);
-        let stored = [];
-        try { stored = JSON.parse(localStorage.getItem('visium.admin.pacientes') || '[]'); } catch { stored = []; }
-        const storedByRut = new Map(stored.map((patient) => [patient.rut, patient]));
+        let storedPatients = [];
+        try { storedPatients = JSON.parse(localStorage.getItem('visium.admin.pacientes') || '[]'); } catch { storedPatients = []; }
+        const storedByRut = new Map(storedPatients.map((patient) => [patient.rut, patient]));
         const fichasByPatient = new Map();
         baseFichas.forEach((ficha) => fichasByPatient.set(ficha.pacienteRut, [ficha]));
         const loadedPatients = basePatients.map((patient) => {
