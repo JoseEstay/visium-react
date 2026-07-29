@@ -1,7 +1,7 @@
 import { useState } from "react";
 
 import "./Login.css";
-import { useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
 
 function Login() {
   const [medico, setMedico] = useState("");
@@ -168,15 +168,10 @@ function Login() {
             </form>
 
             <div className="bottom-row">
-              <div>
-                ¿No tiene una cuenta?
-                <a href="#">Solicite acceso</a>
-              </div>
-
-              <div className="d-flex align-items-center gap-2 text-secondary">
+              <Link to="/contacto" className="d-flex align-items-center gap-2 text-secondary support-link">
                 <i className="bi bi-headset"></i>
                 Soporte Técnico
-              </div>
+              </Link>
             </div>
           </div>
         </div>

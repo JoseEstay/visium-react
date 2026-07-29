@@ -7,6 +7,7 @@
 - Se agregó el historial de recetas por paciente en Gestión Administrativa, con opciones para editar y eliminar registros.
 - Se incorporó el campo Diagnóstico en la página de Recetas y en la edición de su historial administrativo.
 - Se añadió el flujo de recuperación de contraseña: correo, validación del código de demostración `111-111` y actualización de contraseña local.
+- Se añadió una página pública de contacto para Soporte Técnico, con correo, teléfono y motivo de consulta.
 - Se vinculó cada recepcionista con un usuario mediante `usuarioId` y se añadió el usuario de Marcela Soto.
 
 ### Modificado
@@ -30,6 +31,7 @@
 ### Quitado
 - Se eliminó la etiqueta «Paciente nuevo» y el botón «Estado de cita en trámite» de la tarjeta principal del dashboard.
 - Se eliminó la sección «Motivo de consulta» de la página Ficha/Paciente.
+- Se eliminó el enlace «Solicite acceso» de la pantalla de inicio de sesión.
 - Se reemplazó `fichas.json` por `recetas.json`.
 
 ## 2026-07-24

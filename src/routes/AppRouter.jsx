@@ -13,6 +13,7 @@ import RutaProtegida from "../pages/Login/RutaProtegida";
 import GestionAdministrativa from "../pages/GestionAdministrativa/GestionAdministrativa";
 import GestionContrasenas from "../pages/GestionContrasenas/GestionContrasenas";
 import RecuperarContrasena from "../pages/Login/RecuperarContrasena";
+import Contacto from "../pages/Login/Contacto";
 export default function AppRouter() {
   return (
     <BrowserRouter>
@@ -38,6 +39,7 @@ export default function AppRouter() {
 
         <Route path="/login" element={<Login />} />
         <Route path="/recuperar-contrasena" element={<RecuperarContrasena />} />
+        <Route path="/contacto" element={<Contacto />} />
         <Route path="/notFound" element={<NotFound />} />
         <Route path="*" element={<Navigate to="/NotFound" replace />} />
 
