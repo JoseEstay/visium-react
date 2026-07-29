@@ -136,18 +136,6 @@ function Login() {
                 </div>
               </div>
 
-              <div className="form-check mb-4">
-                <input
-                  className="form-check-input"
-                  type="checkbox"
-                  id="remember"
-                />
-
-                <label className="form-check-label" htmlFor="remember">
-                  Recordar mi sesión en este equipo
-                </label>
-              </div>
-
               <button
                 type="submit"
                 className="
