@@ -1,6 +1,13 @@
-import "./Dashboard.css"
+import { useNavigate } from "react-router";
+import "./Dashboard.css";
 
-export default function Dashboard(){
+export default function Dashboard() {
+  const navigate = useNavigate();
+
+  const irFicha = () => {
+    navigate('/paciente');
+  };
+
   return (
     <main className="main-content">
       <section className="Saludo">
@@ -41,9 +48,9 @@ export default function Dashboard(){
             </div>
 
 
-            <button className="btn-iniciar" type="button">
+            <button className="btn-iniciar" onClick={irFicha}>
               <i className="bi bi-play-circle"></i>
-              Iniciar Atención
+              Confirmar cita
             </button>
           </div>
 
@@ -55,11 +62,6 @@ export default function Dashboard(){
             <button className="btn-estado" type="button">
               <i className="bi bi-info-circle-fill"></i>
               Estado del perfil
-            </button>
-
-            <button className="btn-editar" type="button">
-              <i className="bi bi-person-fill-gear fs-5"></i>
-              Editar Perfil
             </button>
           </div>
         </div>
@@ -118,4 +120,5 @@ export default function Dashboard(){
       </div>
     </main>
   );
-};
+}
+

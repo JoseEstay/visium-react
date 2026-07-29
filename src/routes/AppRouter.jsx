@@ -8,8 +8,8 @@ import Home from "../pages/Home/Home";
 import NuevoPaciente from "../pages/nuevoPaciente/NuevoPaciente";
 import GestionCitas from "../pages/Citas/GestionCitas";
 import GestionPacientes from "../pages/gestionPacientes/gestionPacientes";
-import NotFound from "../pages/NotFound/notFound";
-
+import NotFound from "../pages/notfound/NotFound";
+import RutaProtegida from "../pages/Login/RutaProtegida";
 export default function AppRouter() {
   return (
     <BrowserRouter>
@@ -18,17 +18,20 @@ export default function AppRouter() {
           <Route path="/" element={<Home />} />
         </Route>
 
+        <Route element={<RutaProtegida />}> 
+
         <Route element={<MainLayout />}>
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/paciente" element={<NuevoPaciente />} />
           <Route path="/gestionPacientes" element={<GestionPacientes />} />
           <Route path="/recetas" element={<Recetas />} />
           <Route path="/citas" element={<GestionCitas />} />
+          </Route>
 
         </Route>
 
         <Route path="/login" element={<Login />} />
-        <Route path="/NotFound" element={<NotFound />} />
+        <Route path="/notFound" element={<NotFound />} />
         <Route path="*" element={<Navigate to="/NotFound" replace />} />
 
 
