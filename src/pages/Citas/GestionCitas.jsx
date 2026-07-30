@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import agendarIcon from '../../assets/img/agendar.svg';
 import configIcon from '../../assets/img/config.svg';
 import filtroIcon from '../../assets/img/filtro.svg';
@@ -8,12 +9,70 @@ import seguimientoIcon from '../../assets/img/seguimiento.svg';
 import userIcon from '../../assets/img/user.svg';
 import './GestionCitas.css';
 
+const PATIENTS_KEY = 'visium.admin.pacientes';
+const CITAS_KEY = 'visium.citas';
+
 // Octubre 2025 empieza en miércoles, por eso el mes arranca con dos días de septiembre.
 const diasPreviosDelMes = [29, 30];
 const diasDelMes = Array.from({ length: 31 }, (_, indice) => indice + 1);
-const marcasDelMes = { 4: "has-dot", 5: "danger-dot", 24: "selected" };
+const marcasDelMes = { 4: 'has-dot', 5: 'danger-dot', 24: 'selected' };
+const formVacio = { rut: '', hora: '14:00', motivo: '' };
 
 export default function GestionCitas() {
+  const [mostrarAgenda, setMostrarAgenda] = useState(false);
+  const [pacientes, setPacientes] = useState([]);
+  const [form, setForm] = useState(formVacio);
+
+  useEffect(() => {
+    fetch('/data/pacientes.json')
+      .then((respuesta) => respuesta.json())
+      .then((base) => {
+        let guardados = [];
+        try {
+          guardados = JSON.parse(localStorage.getItem(PATIENTS_KEY) || '[]');
+        } catch {
+          guardados = [];
+        }
+        const porRut = new Map(base.map((paciente) => [paciente.rut, paciente]));
+        guardados.forEach((paciente) => {
+          if (paciente?.rut) porRut.set(paciente.rut, { ...porRut.get(paciente.rut), ...paciente });
+        });
+        setPacientes([...porRut.values()]);
+      })
+      .catch((error) => console.error('Error cargando pacientes', error));
+  }, []);
+
+  const abrirAgenda = (hora = '14:00') => {
+    setForm({ ...formVacio, hora });
+    setMostrarAgenda(true);
+  };
+
+  const guardarCita = (evento) => {
+    evento.preventDefault();
+    const paciente = pacientes.find((item) => item.rut === form.rut);
+    if (!paciente) return;
+
+    let citas = [];
+    try {
+      citas = JSON.parse(localStorage.getItem(CITAS_KEY) || '[]');
+    } catch {
+      citas = [];
+    }
+
+    citas.push({
+      id: `C-${Date.now()}`,
+      pacienteRut: paciente.rut,
+      pacienteNombre: paciente.nombre,
+      hora: form.hora,
+      motivo: form.motivo.trim(),
+      fecha: '2025-10-24',
+      estado: 'Pendiente',
+    });
+    localStorage.setItem(CITAS_KEY, JSON.stringify(citas));
+    setMostrarAgenda(false);
+    setForm(formVacio);
+  };
+
   return (
     <main className="page">
       <section className="page-heading">
@@ -21,8 +80,8 @@ export default function GestionCitas() {
           <h2>Gestión de Citas</h2>
           <p>Viernes, 24 de Octubre de 2025</p>
         </div>
-        <button className="btn btn-primary" type="button">
-          <img src={agendarIcon} alt="Calendario agenda" aria-hidden="true" />
+        <button className="btn btn-primary" type="button" onClick={() => abrirAgenda()}>
+          <img src={agendarIcon} alt="" aria-hidden="true" />
           <span>Agendar Nueva Cita</span>
         </button>
       </section>
@@ -65,7 +124,7 @@ export default function GestionCitas() {
               <div><strong>3</strong><span>Pendientes</span></div>
               <div><strong>1</strong><span>Urgencias</span></div>
             </div>
-            <img src={resumenBackground} alt="resumen del dia" className="background-img" />
+            <img src={resumenBackground} alt="" className="background-img" />
           </article>
         </aside>
 
@@ -80,10 +139,10 @@ export default function GestionCitas() {
             </div>
             <div className="card-actions">
               <button className="icon-button filtro-btn" type="button" aria-label="Filtrar agenda">
-                <img src={filtroIcon} alt="filtrar" aria-hidden="true" />
+                <img src={filtroIcon} alt="" aria-hidden="true" />
               </button>
               <button className="icon-button filtro-btn" type="button" aria-label="Imprimir agenda">
-                <img src={imprimirIcon} alt="imprimir" aria-hidden="true" />
+                <img src={imprimirIcon} alt="" aria-hidden="true" />
               </button>
             </div>
           </div>
@@ -93,7 +152,7 @@ export default function GestionCitas() {
               <time>08:00</time>
               <article className="appointment completed">
                 <div className="appointment-icon">
-                  <img src={userIcon} alt="usuario" aria-hidden="true" />
+                  <img src={userIcon} alt="" aria-hidden="true" />
                 </div>
                 <div>
                   <h4>Elena Martinez Soler</h4>
@@ -108,7 +167,7 @@ export default function GestionCitas() {
               <time>09:15</time>
               <article className="appointment selected">
                 <div className="appointment-icon primary">
-                  <img src={seguimientoIcon} alt="seguimiento" aria-hidden="true" />
+                  <img src={seguimientoIcon} alt="" aria-hidden="true" />
                 </div>
                 <div>
                   <h4>Javier Ruiz Gomez</h4>
@@ -116,7 +175,7 @@ export default function GestionCitas() {
                 </div>
                 <span className="badge primary">En progreso</span>
                 <button className="icon-button small" type="button" aria-label="Mas opciones">
-                  <img src={configIcon} alt="tres puntos" aria-hidden="true" />
+                  <img src={configIcon} alt="" aria-hidden="true" />
                 </button>
               </article>
             </div>
@@ -141,7 +200,7 @@ export default function GestionCitas() {
               <time>11:45</time>
               <article className="appointment">
                 <div className="appointment-icon">
-                  <img src={userIcon} alt="user" aria-hidden="true" />
+                  <img src={userIcon} alt="" aria-hidden="true" />
                 </div>
                 <div>
                   <h4>Marcos Toledo</h4>
@@ -162,14 +221,70 @@ export default function GestionCitas() {
 
             <div className="time-row">
               <time>14:00</time>
-              <button className="empty-slot" type="button">
-                <img src={masIcon} alt="mas" aria-hidden="true" />
+              <button className="empty-slot" type="button" onClick={() => abrirAgenda('14:00')}>
+                <img src={masIcon} alt="" aria-hidden="true" />
                 <span>Disponible para cita</span>
               </button>
             </div>
           </div>
         </section>
       </section>
+
+      {mostrarAgenda && (
+        <div className="citas-modal" onClick={() => setMostrarAgenda(false)}>
+          <form className="citas-modal-card" onSubmit={guardarCita} onClick={(evento) => evento.stopPropagation()}>
+            <div className="citas-modal-header">
+              <h2>Agendar nueva cita</h2>
+              <button type="button" onClick={() => setMostrarAgenda(false)} aria-label="Cerrar">&times;</button>
+            </div>
+
+            <label className="citas-campo">
+              Paciente
+              <div className="citas-lista-pacientes" role="listbox" aria-label="Listado de pacientes">
+                {pacientes.map((paciente) => (
+                  <button
+                    key={paciente.rut}
+                    type="button"
+                    role="option"
+                    aria-selected={form.rut === paciente.rut}
+                    className={form.rut === paciente.rut ? 'activo' : ''}
+                    onClick={() => setForm({ ...form, rut: paciente.rut })}
+                  >
+                    <strong>{paciente.nombre}</strong>
+                    <span>{paciente.rut}</span>
+                  </button>
+                ))}
+              </div>
+            </label>
+
+            <label className="citas-campo">
+              Hora
+              <input
+                type="time"
+                required
+                value={form.hora}
+                onChange={(evento) => setForm({ ...form, hora: evento.target.value })}
+              />
+            </label>
+
+            <label className="citas-campo">
+              Motivo
+              <input
+                type="text"
+                required
+                placeholder="Ej. Control de glaucoma"
+                value={form.motivo}
+                onChange={(evento) => setForm({ ...form, motivo: evento.target.value })}
+              />
+            </label>
+
+            <div className="citas-modal-acciones">
+              <button type="button" className="btn btn-light" onClick={() => setMostrarAgenda(false)}>Cancelar</button>
+              <button type="submit" className="btn btn-primary" disabled={!form.rut}>Guardar cita</button>
+            </div>
+          </form>
+        </div>
+      )}
     </main>
   );
 }
