@@ -10,22 +10,30 @@ import GestionCitas from "../pages/Citas/GestionCitas";
 import GestionPacientes from "../pages/gestionPacientes/gestionPacientes";
 import NotFound from "../pages/notfound/NotFound";
 import RutaProtegida from "../pages/Login/RutaProtegida";
+import { ThemeProvider } from "../context/ThemeContext";
 import GestionAdministrativa from "../pages/GestionAdministrativa/GestionAdministrativa";
 import GestionContrasenas from "../pages/GestionContrasenas/GestionContrasenas";
 import RecuperarContrasena from "../pages/Login/RecuperarContrasena";
 import Contacto from "../pages/Login/Contacto";
 import SolicitudDemo from "../pages/SolicitudDemo/SolicitudDemo";
+
 export default function AppRouter() {
   return (
+
     <BrowserRouter>
       <Routes>
         <Route element={<HomeLayout />}>
           <Route path="/" element={<Home />} />
         </Route>
 
-        <Route element={<RutaProtegida />}> 
+        <Route element={<RutaProtegida />}>
 
-        <Route element={<MainLayout />}>
+        <Route 
+          element={
+              <ThemeProvider>
+                <MainLayout />
+              </ThemeProvider>
+          }>
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/paciente" element={<NuevoPaciente />} />
           <Route path="/paciente/:patientRut" element={<NuevoPaciente />} />
@@ -34,6 +42,7 @@ export default function AppRouter() {
           <Route path="/citas" element={<GestionCitas />} />
           <Route path="/gestion-administrativa/contrasenas" element={<GestionContrasenas />} />
           <Route path="/gestion-administrativa/:resource" element={<GestionAdministrativa />} />
+
           </Route>
 
         </Route>
@@ -45,11 +54,9 @@ export default function AppRouter() {
         <Route path="/notFound" element={<NotFound />} />
         <Route path="*" element={<Navigate to="/NotFound" replace />} />
 
-
-
       </Routes>
 
-
     </BrowserRouter>
+
   );
 }

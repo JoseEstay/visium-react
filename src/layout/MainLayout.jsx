@@ -1,4 +1,3 @@
-import Footer from "../components/Footer/Footer";
 import MenuLateral from "../components/MenuLateral/MenuLateral";
 import { Outlet, useLocation } from "react-router-dom";
 import "./MainLayout.css"; // Importa los estilos del layout
@@ -16,9 +15,11 @@ export default function MainLayout() {
       <div className="content-wrapper">
         <HeaderMenu /> 
         <main className="main-content">
+
+          <Outlet />
+        </main>        
           <Outlet key={location.pathname} />
         </main>
-        <Footer />
       </div>
     </div>
   );

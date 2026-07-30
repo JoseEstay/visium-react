@@ -379,3 +379,41 @@
     transition: none;
   }
 }
+
+/* ========================================================
+   MODO OSCURO (Solo se aplica si la etiqueta <html> tiene .dark)
+======================================================== */
+html.dark .sidebar {
+  background: #010F1F!important;
+  border-color: #334155;
+}
+html.dark .sidebar .logo h2{
+color: #F8FAFC;
+}
+
+html.dark .sidebar .logo span {
+ color: #94A3B8; 
+}
+
+html.dark .sidebar .logo-icon {
+  background: #010F1F;
+  color: #F8FAFC;
+  fill: #F8FAFC;
+}
+
+html.dark .sidebar .menu a,
+html.dark .sidebar .sidebar-bottom a {
+  color: #94A3B8;
+}
+
+html.dark .sidebar .menu a:hover,
+html.dark .sidebar .sidebar-bottom a:hover {
+  background: #334155;
+  color: #3B82F6;
+}
+
+html.dark .sidebar .menu a.active {
+  background: #0A192F;
+  color: #3B82F6;
+  font-weight: 600;
+}

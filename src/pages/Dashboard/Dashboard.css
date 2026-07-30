@@ -79,9 +79,9 @@
 }
 
 .avatar-wrapper {
-  width: 56px;
-  height: 56px;
-  border-radius: 12px;
+  width: 66px;
+  height: 66px;
+  border-radius: 40px;
   border: 2px solid #0056b3;
   background-color: #ffffff;
   flex-shrink: 0;
@@ -99,8 +99,7 @@
 .paciente-info {
   display: flex;
   flex-direction: column;
-  min-width: 0;
-  flex: 1;
+  margin-left: 20px;
 }
 
 .nombre-badge-row {
@@ -112,31 +111,29 @@
 
 .paciente-nombre {
   margin: 0;
-  font-size: 15px;
+  font-size: 18px;
   font-weight: 700;
   color: #1e293b;
+
 }
 
-.badge-nuevo {
+.btn-nuevopaciente {
   background-color: #a5f3fc;
   color: #0e7490;
-  font-size: 10px;
+  font-size: 14px;
   font-weight: 800;
-  padding: 3px 6px;
+  padding: 3px 3px 3px 3px;
+  margin-left: 60px;
   border-radius: 4px;
 }
 
+
 .consulta-tipo {
   margin: 4px 0 0 0;
-  font-size: 12px;
+  font-size: 18px;
   color: #64748b;
-  line-height: 1.4;
-}
+ }
 
-.consulta-subtext {
-  font-size: 11px;
-  color: #64748b;
-}
 
 .horario-meta {
   display: flex;
@@ -145,7 +142,7 @@
   margin-top: 6px;
   color: #004085;
   font-weight: 700;
-  font-size: 12px;
+  font-size: 18px;
 }
 
 .btn-iniciar {
@@ -169,6 +166,7 @@
   height: 1px;
   background-color: #cbd5e1;
   margin: 0;
+  padding: 0;
 }
 
 .card-derecha {
@@ -178,8 +176,7 @@
   width: 100%;
 }
 
-.btn-estado,
-.btn-editar {
+.btn-estado {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -198,11 +195,6 @@
   border: none;
 }
 
-.btn-editar {
-  background-color: #ffffff;
-  color: #004085;
-  border: 1px solid #93c5fd;
-}
 
 /* --- AGENDA (VISTA CELULAR) --- */
 .agenda-container {
@@ -307,6 +299,12 @@
     flex: 1;
   }
 
+  .btn-iniciar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
   /* El separador vuelve a ser vertical */
   .separador-vertical {
     width: 1px;
@@ -340,6 +338,10 @@
     margin: 0 auto; 
   }
 
+  .Saludo{
+    padding-left: 70px;
+  }
+
   .Saludo h1 {
     font-size: 36px;
   }
@@ -349,23 +351,44 @@
   }
 
   .card-paciente {
-    max-width: 750px;
+    max-width: 850px;
     padding: 24px;
+    flex-direction: row;
+    align-items: center;
+    
   }
 
   .avatar-wrapper {
-    width: 72px;
-    height: 72px;
+    width: 80px;
+    height: 80px;
   }
 
   .avatar i {
     font-size: 40px;
   }
 
-  .paciente-nombre {
-    font-size: 16px;
+  .paciente-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start; 
+  flex-grow: 1;
   }
 
+  .paciente-nombre {
+    font-size: 26px;
+    display: flex;
+    align-items: center;
+    align-content: center;
+    margin-bottom: 0;
+  }
+
+  .consulta-tipo {
+    font-size: 20px;
+    display: flex;
+    align-items: start;
+    align-content: start;
+  }
+  
   .separador-vertical {
     height: 140px;
     margin: 0 28px;
@@ -375,8 +398,19 @@
     min-width: 180px;
   }
 
+  .nombre-badge-row {
+    gap: 12px;
+    display: flex;
+    align-items: center;
+  }
+
+  .btn-iniciar {
+    max-width: 300px;
+    margin-left: 160px;
+  }
+
   .agenda-container {
-    max-width: 750px;
+    max-width: 850px;
     padding: 24px;
   }
 
@@ -388,4 +422,122 @@
     padding: 16px 0;
     font-size: 0.95rem;
   }
+
+  .horario-meta {
+    align-items: start;
+  }
 }
+
+/* ========================================================
+   MODO OSCURO (Solo se aplica si la etiqueta <html> tiene .dark)
+======================================================== */
+
+html.dark body {
+  background: #1E293B;
+  border-color: #94A3B8;
+}
+
+html.dark .tabla-agenda {
+  background: #1E293B;
+  border-color: #334155;
+}
+
+html.dark .agenda-titulo{
+  color: #F8FAFC;
+}
+
+html.dark .tabla-agenda th {
+  color: #F8FAFC;
+}
+
+html.dark .tabla-agenda td {
+  color: #F8FAFC;
+}
+
+html.dark .agenda-container {
+  background: #1E293B;
+  border-color: #334155;
+}
+
+html.dark .status-completado {
+  background-color: #14532D; 
+  color: #15803d; 
+  border-radius: 8px;
+}
+
+html.dark .status-siguiente {
+  background-color: #1E3A8A;
+  color: #1d4ed8;
+  border-radius: 8px;
+}
+html.dark .status-espera { 
+  background-color: #1F2937; 
+  color: #9CA3AF; 
+  border-radius: 8px;
+}
+
+html.dark .status-programado { 
+  background-color: #2C3A4C; 
+  color: #94A3B8; 
+  border: 1px solid #2C3A4C; 
+  border-radius: 8px;
+}
+
+html.dark .card-paciente {
+  background: #1E293B;
+  border-color: #334155;
+} 
+
+html.dark .badge-status {
+  color: #F8FAFC;
+}
+
+html.dark .btn-iniciar {
+  background-color: #1E3A8A;
+  color: #F8FAFC;
+}
+
+html.dark .btn-iniciar:hover {
+  background-color: #1E40AF;
+  color: #F8FAFC;
+}
+
+html.dark .btn-estado {
+  background-color: #334155;
+  color: #F8FAFC;
+}
+
+html.dark .btn-estado:hover {
+  background-color: #1E293B;
+  color: #F8FAFC;
+}
+
+html.dark .btn-nuevopaciente {
+  background-color: #0F172A;
+  color: #F8FAFC;
+}
+
+html.dark .paciente-nombre {
+  color: #F8FAFC;
+}
+
+html.dark .consulta-tipo {
+  color: #94A3B8;
+}
+
+
+html.dark .horario-meta {
+  color: #3B82F6;
+}
+
+html.dark .avatar-wrapper {
+  border-color: #334155;
+  background-color: #010F1F;
+  color: #3B82F6;
+}
+
+html.dark .SaludoDoctor p {
+  color: #94A3B8
+}
+
+

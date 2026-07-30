@@ -47,10 +47,13 @@ export default function Dashboard() {
                 <i className="bi bi-person-fill avatar-icono fs-1"></i>
               </div>
 
-              <div className="paciente-info">
+              <div className="paciente-info">             
+
                 <div className="nombre-badge-row">
                   <h2 className="paciente-nombre">{nextAppointment?.paciente || "Sin citas"}</h2>
-                </div>
+                  <div className="btn-nuevopaciente">
+                    <span className="badge-nuevo">PACIENTE NUEVO</span>
+                  </div>
 
                 <p className="consulta-tipo">{nextAppointment?.motivoConsulta || "No hay citas programadas"}</p>
 
@@ -71,7 +74,7 @@ export default function Dashboard() {
 
         <div className="agenda-container">
           <div className="agenda-header">
-            <h3 className="agenda-titulo">Agenda Diaria</h3>
+            <h3 className="agenda-titulo">Próximas Citas</h3>
             <a href="#" className="link-calendario">Ver Calendario Completo</a>
           </div>
 
