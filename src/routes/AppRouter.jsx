@@ -10,22 +10,33 @@ import GestionCitas from "../pages/Citas/GestionCitas";
 import GestionPacientes from "../pages/gestionPacientes/gestionPacientes";
 import NotFound from "../pages/notfound/NotFound";
 import RutaProtegida from "../pages/Login/RutaProtegida";
+import { ThemeProvider } from "../context/ThemeContext";
+
+
+
 export default function AppRouter() {
   return (
+
     <BrowserRouter>
       <Routes>
         <Route element={<HomeLayout />}>
           <Route path="/" element={<Home />} />
         </Route>
 
-        <Route element={<RutaProtegida />}> 
+        <Route element={<RutaProtegida />}>
 
-        <Route element={<MainLayout />}>
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/paciente" element={<NuevoPaciente />} />
-          <Route path="/gestionPacientes" element={<GestionPacientes />} />
-          <Route path="/recetas" element={<Recetas />} />
-          <Route path="/citas" element={<GestionCitas />} />
+          <Route
+            element={
+              <ThemeProvider>
+                <MainLayout />
+              </ThemeProvider>
+            }>
+
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/paciente" element={<NuevoPaciente />} />
+            <Route path="/gestionPacientes" element={<GestionPacientes />} />
+            <Route path="/recetas" element={<Recetas />} />
+            <Route path="/citas" element={<GestionCitas />} />
           </Route>
 
         </Route>
@@ -34,11 +45,9 @@ export default function AppRouter() {
         <Route path="/notFound" element={<NotFound />} />
         <Route path="*" element={<Navigate to="/NotFound" replace />} />
 
-
-
       </Routes>
 
-
     </BrowserRouter>
+
   );
 }

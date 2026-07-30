@@ -30,21 +30,21 @@ export default function Dashboard() {
               </div>
 
               <div className="paciente-info">
-                <div className="nombre-badge-row">
-                  <h2 className="paciente-nombre">Maria<br />González</h2>
+                <div className="nombre-badge-row">                  
+                  <h2 className="paciente-nombre">Maria González</h2> 
+                  <div className="btn-nuevopaciente">
+                    <span className="badge-nuevo">PACIENTE NUEVO</span>
+                  </div>                 
                 </div>
 
-                <p className="consulta-tipo">Consulta postoperatoria</p>
-                <p className="consulta-subtext">(Catarata)</p>
-
+                <p className="consulta-tipo">Consulta postoperatoria (Catarata)</p>
+                
                 <div className="horario-meta">
                   <i className="bi bi-clock"></i>
                   <span>10:30 AM</span>
                 </div>
               </div>
-              <div className="btn-nuevopaciente">
-              <span className="badge-nuevo">PACIENTE<br />NUEVO</span>
-              </div>
+              
             </div>
 
 
@@ -68,7 +68,7 @@ export default function Dashboard() {
 
         <div className="agenda-container">
           <div className="agenda-header">
-            <h3 className="agenda-titulo">Agenda Diaria</h3>
+            <h3 className="agenda-titulo">Próximas Citas</h3>
             <a href="#" className="link-calendario">Ver Calendario Completo</a>
           </div>
 

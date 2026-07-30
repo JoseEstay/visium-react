@@ -16,8 +16,7 @@ export default function MainLayout() {
         <HeaderMenu /> 
         <main className="main-content">
           <Outlet />
-        </main>
-        <Footer />
+        </main>        
       </div>
     </div>
   );

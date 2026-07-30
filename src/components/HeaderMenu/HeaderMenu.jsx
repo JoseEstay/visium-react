@@ -1,4 +1,5 @@
 import "./HeaderMenu.css";
+import { useTheme } from '../../context/ThemeContext';
 import { useNavigate } from "react-router-dom";
 
 export default function HeaderMenu() {
@@ -11,6 +12,7 @@ export default function HeaderMenu() {
       navigate("/Dashboard"); // límite seguro
     }
   };
+  const { theme, toggleTheme } = useTheme();
 
   return (
     <header className="topbar">
@@ -40,7 +42,7 @@ export default function HeaderMenu() {
           <span className="btn-text">Nuevo Paciente</span>
         </button>
 
-        <button className="icon-btn" aria-label="Modo Oscuro">
+        <button className="icon-btn" aria-label="Modo Oscuro" onClick={toggleTheme}>
           <i className="bi bi-moon-stars"></i>
         </button>
        
