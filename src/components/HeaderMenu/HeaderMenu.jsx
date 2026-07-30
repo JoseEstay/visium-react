@@ -1,9 +1,47 @@
 import "./HeaderMenu.css";
 import { useNavigate } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+
+const normalizarTexto = (valor = "") => valor
+  .normalize("NFD")
+  .replace(/[\u0300-\u036f]/g, "")
+  .toLowerCase()
+  .trim();
+
+const normalizarRut = (rut = "") => rut.replace(/[^0-9kK]/g, "").toLowerCase();
 
 export default function HeaderMenu() {
 
   const navigate= useNavigate();
+  const [busqueda, setBusqueda] = useState("");
+  const [pacientes, setPacientes] = useState([]);
+  const usuario = JSON.parse(localStorage.getItem("usuarioActual") || "null");
+
+  useEffect(() => {
+    let activo = true;
+
+    fetch("/data/pacientes.json")
+      .then((response) => response.ok ? response.json() : [])
+      .then((data) => {
+        if (activo) setPacientes(Array.isArray(data) ? data : []);
+      })
+      .catch(() => {
+        if (activo) setPacientes([]);
+      });
+
+    return () => { activo = false; };
+  }, []);
+
+  const coincidencias = useMemo(() => {
+    const texto = normalizarTexto(busqueda);
+    const rut = normalizarRut(busqueda);
+    if (!texto) return [];
+
+    return pacientes
+      .filter((paciente) => normalizarTexto(paciente.nombre).includes(texto) || (rut && normalizarRut(paciente.rut).includes(rut)))
+      .slice(0, 6);
+  }, [busqueda, pacientes]);
+
   const handleBack = () => {
     if (window.history.state && window.history.state.idx > 0) {
       navigate(-1);
@@ -23,13 +61,42 @@ export default function HeaderMenu() {
 
       {/* 2. Buscador / Input (Izquierda-Centro) */}
       <div className="topbar-center">
-        <div className="search-box">
-          <i className="fa-solid fa-magnifying-glass"></i>
-          <input
-            type="text"
-            id="searchPatient"
-            placeholder="Buscar paciente o ID..."
-          />
+        <div className="search-wrapper">
+          <div className="search-box">
+            <i className="fa-solid fa-magnifying-glass"></i>
+            <input
+              type="text"
+              id="searchPatient"
+              value={busqueda}
+              onChange={(event) => setBusqueda(event.target.value)}
+              placeholder="Buscar paciente o RUT..."
+              autoComplete="off"
+              aria-label="Buscar paciente por nombre o RUT"
+              aria-expanded={coincidencias.length > 0}
+            />
+          </div>
+          {coincidencias.length > 0 && (
+            <ul className="patient-results" role="listbox" aria-label="Pacientes encontrados">
+              {coincidencias.map((paciente) => (
+                <li key={paciente.rut}>
+                  <button
+                    type="button"
+                    onMouseDown={(event) => event.preventDefault()}
+                    onClick={() => {
+                      setBusqueda("");
+                      navigate(`/paciente/${paciente.rut}`);
+                    }}
+                  >
+                    <img src={paciente.foto} alt="" />
+                    <span>
+                      <strong>{paciente.nombre}</strong>
+                      <small>{paciente.rut}</small>
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       </div>
 
@@ -45,8 +112,8 @@ export default function HeaderMenu() {
         </button>
        
         <div className="profile">
-          <img src="https://i.pravatar.cc/100?img=12" alt="Doctor" />
-          <span>Perfil</span>
+          <img src="https://i.pravatar.cc/100?img=12" alt="Usuario" />
+          <span>{usuario?.nombre || "Usuario"}</span>
         </div>
       </div>
     </header>

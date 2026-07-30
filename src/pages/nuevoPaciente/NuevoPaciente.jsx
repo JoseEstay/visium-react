@@ -1,27 +1,69 @@
-import  { useState } from 'react';
+import  { useEffect, useState } from 'react';
 import './NuevoPaciente.css';
-import { Link } from 'react-router';
+import { Link, useParams } from 'react-router-dom';
 
 export default function NuevoPaciente() {
+  const { patientRut } = useParams();
+  const [patients, setPatients] = useState([]);
+  const [selectedPatientRut, setSelectedPatientRut] = useState(patientRut || '');
+  const [savedMessage, setSavedMessage] = useState('');
   // ===============================
   // ESTADOS DEL FORMULARIO
   // ===============================
   const [formData, setFormData] = useState({
-    nombre: '', rut: '', fecha: '', sexo: '', telefono: '', email: '', motivo: '',
+    nombre: '', rut: '', fecha: '', sexo: '', telefono: '', email: '',
     diabetes: false, hipertension: false, glaucoma: true
   });
   
   const [alergias, setAlergias] = useState(['Penicilina', 'Latex']);
   const [alergiaInput, setAlergiaInput] = useState('');
+
+  useEffect(() => {
+    Promise.all([fetch('/data/pacientes.json'), fetch('/data/recetas.json')])
+      .then(async ([patientsResponse, fichasResponse]) => {
+        const [basePatients, baseFichas] = await Promise.all([patientsResponse.json(), fichasResponse.json()]);
+        let storedPatients = [];
+        try { storedPatients = JSON.parse(localStorage.getItem('visium.admin.pacientes') || '[]'); } catch { storedPatients = []; }
+        const storedByRut = new Map(storedPatients.map((patient) => [patient.rut, patient]));
+        const fichasByPatient = new Map();
+        baseFichas.forEach((ficha) => fichasByPatient.set(ficha.pacienteRut, [ficha]));
+        const loadedPatients = basePatients.map((patient) => {
+          const saved = storedByRut.get(patient.rut) || {};
+          const fichas = saved.fichas || (saved.ficha ? [saved.ficha] : fichasByPatient.get(patient.rut) || []);
+          return {
+            ...patient,
+            ...saved,
+            // Registros creados antes de incorporar estos campos pueden contener cadenas vacías.
+            fechaNacimiento: saved.fechaNacimiento || patient.fechaNacimiento,
+            email: saved.email || patient.email,
+            fichas
+          };
+        });
+        setPatients(loadedPatients);
+        const patient = loadedPatients.find((item) => item.rut === (patientRut || selectedPatientRut));
+        if (!patient) return;
+        const lastRecord = patient.fichas.at(-1) || {};
+        const antecedentes = patient.antecedentes || lastRecord.condicionesMedicas || {};
+        setFormData({
+          nombre: patient.nombre || '', rut: patient.rut || '', fecha: patient.fechaNacimiento || '', sexo: (patient.sexo || '').toLowerCase(),
+          telefono: patient.telefono || '', email: patient.email || '',
+          diabetes: antecedentes.diabetes ?? false,
+          hipertension: antecedentes.hipertension ?? false,
+          glaucoma: antecedentes.glaucoma ?? false
+        });
+        setAlergias(antecedentes.alergias || lastRecord.alergias || []);
+      })
+      .catch((error) => console.error('Error cargando la ficha', error));
+  }, [patientRut, selectedPatientRut]);
   
   // ===============================
   // LÓGICA DE BARRA DE PROGRESO (Estado derivado)
   // ===============================
-  const totalFields = 7; // nombre, rut, fecha, sexo, telefono, email, motivo
+  const totalFields = 6;
   
   const fieldsToTrack = [
     formData.nombre, formData.rut, formData.fecha, 
-    formData.sexo, formData.telefono, formData.email, formData.motivo
+    formData.sexo, formData.telefono, formData.email
   ];
   
   // Se calcula automáticamente en cada renderizado sin causar error de cascada
@@ -51,6 +93,22 @@ export default function NuevoPaciente() {
     setAlergias(alergias.filter((_, index) => index !== indexToRemove));
   };
 
+  const handleUpdatePatient = () => {
+    const patient = patients.find((item) => item.rut === selectedPatientRut);
+    if (!patient) return;
+
+    const updatedPatient = {
+      ...patient,
+      nombre: formData.nombre, rut: formData.rut, fechaNacimiento: formData.fecha, sexo: formData.sexo,
+      telefono: formData.telefono, email: formData.email,
+      antecedentes: { alergias, diabetes: formData.diabetes, hipertension: formData.hipertension, glaucoma: formData.glaucoma }
+    };
+    const updatedPatients = patients.map((item) => item.rut === patient.rut ? updatedPatient : item);
+    setPatients(updatedPatients);
+    localStorage.setItem('visium.admin.pacientes', JSON.stringify(updatedPatients));
+    setSavedMessage('Datos y antecedentes actualizados.');
+  };
+
   return (
     <>
       {/* Contenido Principal */}
@@ -59,6 +117,12 @@ export default function NuevoPaciente() {
             
             <section className="form-section">
               <h2>Datos Personales</h2>
+              {!patientRut && <label className="patient-selector">Paciente asociado
+                <select value={selectedPatientRut} onChange={(event) => setSelectedPatientRut(event.target.value)}>
+                  <option value="">Seleccionar paciente...</option>
+                  {patients.map((patient) => <option key={patient.rut} value={patient.rut}>{patient.nombre} · {patient.rut}</option>)}
+                </select>
+              </label>}
               <div className="form-grid">
                 <label>Nombre completo
                   <input type="text" id="nombre" value={formData.nombre} onChange={handleInputChange} placeholder="Ej: Juan Pérez González" />
@@ -119,25 +183,15 @@ export default function NuevoPaciente() {
               </div>
             </section>
 
-            <section className="form-section">
-              <h2>Motivo de Consulta</h2>
-              <textarea 
-                id="motivo" 
-                maxLength="500" 
-                value={formData.motivo}
-                onChange={handleInputChange}
-                placeholder="Describa el motivo principal de la consulta del paciente..."
-              ></textarea>
-              <p className="hint">Máximo 500 caracteres</p>
-            </section>
-
             <footer className="action-bar">
               <p className="required-note">* Campos obligatorios</p>
               <div className="action-buttons">
-                <Link to="/recetas" className="btn-secundario" >
-                  Crear Ficha
-               </Link>
+                <button type="button" className="btn-secundario" onClick={handleUpdatePatient} disabled={!selectedPatientRut}>
+                  Actualizar datos
+                </button>
+                <Link to="/recetas" className="btn-primario">Crear ficha</Link>
               </div>
+              {savedMessage && <p className="save-message" role="status">{savedMessage}</p>}
             </footer>
           </div>
 

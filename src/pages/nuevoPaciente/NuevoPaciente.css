@@ -228,6 +228,27 @@ body {
     gap: 16px;
 }
 
+.patient-selector {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 16px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #374151;
+    text-transform: uppercase;
+    letter-spacing: .03em;
+}
+
+.patient-selector select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--visium-border);
+    border-radius: 8px;
+    background: #fff;
+    text-transform: none;
+}
+
 .form-grid label {
     display: flex;
     flex-direction: column;
@@ -390,6 +411,9 @@ body {
 }
 
 .btn-primario:hover { background: var(--visium-blue); }
+.btn-primario:disabled { opacity: .55; cursor: not-allowed; }
+.btn-secundario:disabled { opacity: .55; cursor: not-allowed; }
+.save-message { margin: 0; width: 100%; color: #0f766e; font-size: 13px; font-weight: 600; }
 
 @media (max-width: 1024px) {
     .page-body { grid-template-columns: 1fr; }

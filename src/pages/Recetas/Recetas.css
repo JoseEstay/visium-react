@@ -16,13 +16,13 @@ body {
 /* =========================================
    LAYOUT PRINCIPAL (Sidebar y Contenido)
 ========================================= */
-.layout-unificado { 
-    display: flex; 
-    height: 100vh; 
-    overflow: hidden; 
+.layout-unificado {
+    display: block;
+    min-height: 0;
+    overflow: visible;
 }
 
-.sidebar { 
+.layout-unificado .sidebar {
     width: 260px; 
     background: #fff; 
     border-right: 1px solid #dce4ef; 
@@ -92,11 +92,10 @@ body {
     padding: 10px 0; 
 }
 
-.contenido-unificado { 
-    flex: 1; 
-    display: flex; 
-    flex-direction: column; 
-    overflow-y: auto; 
+.layout-unificado .contenido-unificado {
+    display: block;
+    min-width: 0;
+    overflow: visible;
 }
 
 /* =========================================
@@ -165,7 +164,10 @@ body {
 }
 
 .receta-page { 
-    padding: 0 32px 32px 32px; 
+    width: 100%;
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 0 32px 32px;
 }
 
 /* =========================================
@@ -262,12 +264,11 @@ body {
    GRID RECETA (Refracción y Farmacológica)
 ========================================= */
 .contenido-receta { 
-    display: grid; 
-    grid-template-columns: minmax(0, 3fr) 320px; 
-    gap: 24px; 
+    display: block !important;
     margin-top: 24px; 
-    align-items: start; 
 }
+
+.contenido-receta > div { width: 100%; }
 
 /* Columna Izquierda (Óptica) */
 .receta-card { 
@@ -534,4 +535,34 @@ body {
     display: flex; 
     align-items: center; 
     gap: 8px; 
+}
+
+@media (max-width: 900px) {
+    .receta-page { padding: 0 20px 28px; }
+
+    .paciente-card {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        padding: 20px;
+    }
+
+    .historial { justify-content: flex-start; }
+}
+
+@media (max-width: 640px) {
+    .layout-unificado .contenido-unificado { min-width: 0; }
+    .breadcrumb-bar { padding: 12px 16px; }
+    .receta-page { padding: 0 16px 24px; }
+
+    .paciente-card { grid-template-columns: 1fr; gap: 14px; padding: 16px; }
+    .receta-card { padding: 16px; margin-bottom: 16px; overflow-x: auto; }
+    .titulo-receta { align-items: flex-start; flex-direction: column; gap: 14px; margin-bottom: 16px; }
+    .titulo-receta h2 { font-size: 16px; }
+    .botones-receta { width: 100%; }
+    .botones-receta button { flex: 1; }
+    .tabla-receta { min-width: 560px; margin-bottom: 18px; }
+    .tabla-receta th, .tabla-receta td { padding: 12px 8px; }
+    .fila-receta { flex-direction: column; gap: 16px; }
+    .acciones-footer { align-items: stretch; flex-direction: column; gap: 16px; }
+    .acciones-botones { flex-direction: column; gap: 10px; }
+    .btn-guardar, .btn-imprimir { justify-content: center; width: 100%; }
 }

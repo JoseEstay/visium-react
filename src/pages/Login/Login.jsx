@@ -1,7 +1,7 @@
 import { useState } from "react";
 
 import "./Login.css";
-import { useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
 
 function Login() {
   const [medico, setMedico] = useState("");
@@ -14,13 +14,15 @@ function Login() {
 
   const logueado = (e) => {
     e.preventDefault();
-
-    if (medico === "prueba1@gmail.com" && password === "prueba123") {
-      localStorage.setItem("sesionIniciada", "true");
-      navigate("/dashboard");
-    } else {
-      alert("Datos incorrectos");
-    }
+    const storedUsers = localStorage.getItem("visium.usuarios");
+    (storedUsers ? Promise.resolve(JSON.parse(storedUsers)) : fetch("/data/usuarios.json").then((response) => response.json()))
+      .then((usuarios) => {
+        const usuario = usuarios.find((item) => item.email === medico && item.password === password);
+        if (!usuario) { alert("Datos incorrectos"); return; }
+        localStorage.setItem("sesionIniciada", "true");
+        localStorage.setItem("usuarioActual", JSON.stringify(usuario));
+        navigate("/dashboard");
+      });
   };
 
   return (
@@ -31,7 +33,7 @@ function Login() {
 
           <div className="col-md-12 col-lg-5 d-none d-md-flex panel-left">
             <div>
-              <div className="brand-title">Visium</div>
+              <Link to="/" className="brand-title">Visium</Link>
 
               <div className="brand-subtitle">
                 Plataforma Integral para Médicos Tratantes
@@ -64,11 +66,11 @@ function Login() {
           {/* PANEL DERECHO */}
 
           <div className="col-12 col-lg-7 panel-right">
-            <div className="logo-row">
+            <Link to="/" className="logo-row" aria-label="Ir al inicio de Visium">
               <i className="bi bi-eye-fill"></i>
 
               <span>Visium</span>
-            </div>
+            </Link>
 
             <h1 className="form-heading">Portal de Médico Tratante</h1>
 
@@ -101,7 +103,7 @@ function Login() {
               <div className="mb-3 position-relative">
                 <label className="form-label-custom mb-2 d-block">
                   Contraseña
-                  <a className="forgot-password" href="#">
+                  <a className="forgot-password" href="/recuperar-contrasena">
                     ¿Olvidó su contraseña?
                   </a>
                 </label>
@@ -124,6 +126,7 @@ function Login() {
                     type="button"
                     className="toggle-eye"
                     onClick={() => setMostrarPassword(!mostrarPassword)}
+                    aria-label={mostrarPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
                   >
                     <i
                       className={
@@ -132,18 +135,6 @@ function Login() {
                     ></i>
                   </button>
                 </div>
-              </div>
-
-              <div className="form-check mb-4">
-                <input
-                  className="form-check-input"
-                  type="checkbox"
-                  id="remember"
-                />
-
-                <label className="form-check-label" htmlFor="remember">
-                  Recordar mi sesión en este equipo
-                </label>
               </div>
 
               <button
@@ -166,15 +157,10 @@ function Login() {
             </form>
 
             <div className="bottom-row">
-              <div>
-                ¿No tiene una cuenta?
-                <a href="#">Solicite acceso</a>
-              </div>
-
-              <div className="d-flex align-items-center gap-2 text-secondary">
+              <Link to="/contacto" className="d-flex align-items-center gap-2 text-secondary support-link">
                 <i className="bi bi-headset"></i>
                 Soporte Técnico
-              </div>
+              </Link>
             </div>
           </div>
         </div>

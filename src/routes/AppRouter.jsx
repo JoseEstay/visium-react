@@ -10,6 +10,11 @@ import GestionCitas from "../pages/Citas/GestionCitas";
 import GestionPacientes from "../pages/gestionPacientes/gestionPacientes";
 import NotFound from "../pages/notfound/NotFound";
 import RutaProtegida from "../pages/Login/RutaProtegida";
+import GestionAdministrativa from "../pages/GestionAdministrativa/GestionAdministrativa";
+import GestionContrasenas from "../pages/GestionContrasenas/GestionContrasenas";
+import RecuperarContrasena from "../pages/Login/RecuperarContrasena";
+import Contacto from "../pages/Login/Contacto";
+import SolicitudDemo from "../pages/SolicitudDemo/SolicitudDemo";
 export default function AppRouter() {
   return (
     <BrowserRouter>
@@ -23,14 +28,20 @@ export default function AppRouter() {
         <Route element={<MainLayout />}>
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/paciente" element={<NuevoPaciente />} />
+          <Route path="/paciente/:patientRut" element={<NuevoPaciente />} />
           <Route path="/gestionPacientes" element={<GestionPacientes />} />
           <Route path="/recetas" element={<Recetas />} />
           <Route path="/citas" element={<GestionCitas />} />
+          <Route path="/gestion-administrativa/contrasenas" element={<GestionContrasenas />} />
+          <Route path="/gestion-administrativa/:resource" element={<GestionAdministrativa />} />
           </Route>
 
         </Route>
 
         <Route path="/login" element={<Login />} />
+        <Route path="/recuperar-contrasena" element={<RecuperarContrasena />} />
+        <Route path="/contacto" element={<Contacto />} />
+        <Route path="/solicitar-demo" element={<SolicitudDemo />} />
         <Route path="/notFound" element={<NotFound />} />
         <Route path="*" element={<Navigate to="/NotFound" replace />} />
 

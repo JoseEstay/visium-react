@@ -1,17 +1,9 @@
 import { useState, useEffect } from 'react';
 
-// Datos iniciales
-const initialPatients = [
-  { nombre: "María González", edad: 34, fechaNacimiento: "1992-03-18", sexo: "Femenino", id: "P-1001", telefono: "+56 9 1234 5678", email: "maria.gonzalez@example.com", consulta: "20/06/2026", condicion: "Glaucoma Avanzado", color: "red", img: "https://i.pravatar.cc/150?img=1" },
-  { nombre: "Carlos Soto", edad: 51, fechaNacimiento: "1975-05-09", sexo: "Masculino", id: "P-1002", telefono: "+56 9 2345 6789", email: "carlos.soto@example.com", consulta: "19/06/2026", condicion: "Control Post-Op", color: "green", img: "https://i.pravatar.cc/150?img=2" },
-  { nombre: "Andrea Pérez", edad: 18, fechaNacimiento: "2008-01-27", sexo: "Femenino", id: "P-1003", telefono: "+56 9 3456 7890", email: "andrea.perez@example.com", consulta: "17/06/2026", condicion: "Miopía Progresiva", color: "blue", img: "https://i.pravatar.cc/150?img=3" },
-  { nombre: "José Ramírez", edad: 67, fechaNacimiento: "1959-02-11", sexo: "Masculino", id: "P-1004", telefono: "+56 9 4567 8901", email: "jose.ramirez@example.com", consulta: "16/06/2026", condicion: "Cataratas (OD)", color: "orange", img: "https://i.pravatar.cc/150?img=4" }
-];
-
-const PATIENTS_STORAGE_KEY = "visium.gestion-pacientes";
+const PATIENTS_STORAGE_KEY = "visium.admin.pacientes";
 const emptyPersonalData = {
   nombre: "",
-  id: "",
+  rut: "",
   fechaNacimiento: "",
   sexo: "Femenino",
   telefono: "",
@@ -35,34 +27,28 @@ function calculateAge(fechaNacimiento, fallbackAge = "") {
 }
 
 function normalizePatient(patient) {
+  const ficha = patient.ficha ?? {};
   return {
     ...patient,
+    edad: calculateAge(patient.fechaNacimiento, patient.edad),
+    consulta: patient.ultimaConsulta ?? patient.consulta ?? "Sin consultas",
+    diagnostico: ficha.diagnostico ?? patient.diagnostico ?? "",
+    motivoConsulta: patient.motivoConsulta ?? ficha.motivoConsulta ?? "",
+    alergias: patient.alergias ?? (ficha.alergias ?? []).join(", "),
+    diabetes: patient.diabetes ?? (ficha.condicionesMedicas?.diabetes ? "Sí" : "No"),
+    hipertension: patient.hipertension ?? (ficha.condicionesMedicas?.hipertension ? "Sí" : "No"),
+    glaucoma: patient.glaucoma ?? (ficha.condicionesMedicas?.glaucoma ? "Sí" : "No"),
+    condicion: ficha.diagnostico ?? patient.diagnostico ?? patient.condicion ?? "Sin diagnóstico",
+    color: patient.color ?? "blue",
+    img: patient.foto ?? patient.img ?? "https://i.pravatar.cc/150?u=" + patient.rut,
     fechaNacimiento: patient.fechaNacimiento ?? "",
     telefono: patient.telefono ?? "",
     email: patient.email ?? ""
   };
 }
 
-function getInitialPatients() {
-  try {
-    const storedPatients = localStorage.getItem(PATIENTS_STORAGE_KEY);
-
-    if (!storedPatients) {
-      return initialPatients;
-    }
-
-    const parsedPatients = JSON.parse(storedPatients);
-    return Array.isArray(parsedPatients) && parsedPatients.length > 0
-      ? parsedPatients.map(normalizePatient)
-      : initialPatients;
-  } catch (error) {
-    console.error("Error leyendo localStorage", error);
-    return initialPatients;
-  }
-}
-
 export function useGestionPacientes() {
-  const [patients, setPatients] = useState(getInitialPatients);
+  const [patients, setPatients] = useState([]);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -75,9 +61,35 @@ export function useGestionPacientes() {
   const [contextMenu, setContextMenu] = useState({ visible: false, x: 0, y: 0, patientIndex: -1 });
   const rowsPerPage = 3;
 
-  // Guardar en LocalStorage cada vez que cambien los pacientes
+  // Fuente única: datos de pacientes y fichas. Se conserva en localStorage tras una edición.
   useEffect(() => {
-    localStorage.setItem(PATIENTS_STORAGE_KEY, JSON.stringify(patients));
+    Promise.all([fetch("/data/pacientes.json"), fetch("/data/recetas.json")])
+      .then(async ([patientsResponse, recordsResponse]) => {
+        if (!patientsResponse.ok || !recordsResponse.ok) throw new Error("No se pudo cargar la información clínica");
+        const [patientData, recordData] = await Promise.all([patientsResponse.json(), recordsResponse.json()]);
+        const recordsByPatient = new Map(recordData.map((record) => [record.pacienteRut, record]));
+        let savedPatients = [];
+        try { savedPatients = JSON.parse(localStorage.getItem(PATIENTS_STORAGE_KEY) || "[]"); } catch (error) { console.error("Error leyendo pacientes guardados", error); }
+        const savedByRut = new Map(savedPatients.map((patient) => [patient.rut, patient]));
+        setPatients(patientData.map((patient) => {
+          const saved = savedByRut.get(patient.rut) || {};
+          // El archivo base conserva campos que no existían en versiones anteriores, como última consulta.
+          return normalizePatient({
+            ...patient,
+            ...saved,
+            // Conserva los datos válidos editados, pero repara datos antiguos vacíos desde el JSON base.
+            fechaNacimiento: saved.fechaNacimiento || patient.fechaNacimiento,
+            email: saved.email || patient.email,
+            ultimaConsulta: patient.ultimaConsulta,
+            ficha: recordsByPatient.get(patient.rut) ?? saved.ficha
+          });
+        }));
+      })
+      .catch((error) => console.error("Error cargando pacientes", error));
+  }, []);
+
+  useEffect(() => {
+    if (patients.length) localStorage.setItem(PATIENTS_STORAGE_KEY, JSON.stringify(patients));
   }, [patients]);
 
   // Cerrar menú contextual al hacer clic fuera
@@ -90,7 +102,7 @@ export function useGestionPacientes() {
   // Lógica de filtrado
   let filteredPatients = patients.filter(p => {
     const matchSearch = p.nombre.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      p.rut.toLowerCase().includes(searchQuery.toLowerCase()) ||
       p.condicion.toLowerCase().includes(searchQuery.toLowerCase());
     const matchTab = filterTab === "all" ? true : p.condicion !== "Inactivo";
     return matchSearch && matchTab;
@@ -110,7 +122,7 @@ export function useGestionPacientes() {
       const p = patients[index];
       setFormData({
         nombre: p.nombre,
-        id: p.id,
+        rut: p.rut,
         fechaNacimiento: p.fechaNacimiento ?? "",
         sexo: p.sexo,
         telefono: p.telefono ?? "",

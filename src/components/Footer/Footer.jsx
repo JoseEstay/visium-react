@@ -66,8 +66,6 @@ function Footer() {
 
 
                             <li className="mb-2">
-                                <a href="#" className="text-muted text-decoration-none small">
-                                    Dashboard
                                 </a>
                             </li>
 

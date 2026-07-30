@@ -1,0 +1,4 @@
+[
+  { "id": "S-001", "nombre": "Visium Santiago Centro", "ciudad": "Santiago", "direccion": "Av. Libertador 120", "telefono": "+56 2 2345 6789" },
+  { "id": "S-002", "nombre": "Visium Providencia", "ciudad": "Santiago", "direccion": "Av. Providencia 1450", "telefono": "+56 2 2987 6543" }
+]

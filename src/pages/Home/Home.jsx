@@ -12,7 +12,7 @@ function Home() {
 
             {/* HERO SECTION */}
 
-            <section className="py-5 my-4">
+            <section id="inicio" className="py-5 my-4">
 
                 <div className="container">
 

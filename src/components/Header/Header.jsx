@@ -1,8 +1,26 @@
 import "./Header.css";
+import { useEffect, useState } from "react";
 
 
 
 function Header() {
+    const [seccionActiva, setSeccionActiva] = useState(() => window.location.hash === "#sobre-nosotros" ? "sobre" : "inicio");
+
+    useEffect(() => {
+        const actualizarSeccion = () => {
+            const sobreNosotros = document.getElementById("sobre-nosotros");
+            if (!sobreNosotros) return;
+            setSeccionActiva(window.scrollY >= sobreNosotros.offsetTop - 140 ? "sobre" : "inicio");
+        };
+
+        actualizarSeccion();
+        window.addEventListener("scroll", actualizarSeccion, { passive: true });
+        window.addEventListener("hashchange", actualizarSeccion);
+        return () => {
+            window.removeEventListener("scroll", actualizarSeccion);
+            window.removeEventListener("hashchange", actualizarSeccion);
+        };
+    }, []);
 
 
     return (
@@ -77,7 +95,8 @@ function Header() {
 
                                 <a
                                     href="/"
-                                    className="nav-link inicio px-3 fw-semibold active-link"
+                                    className={`nav-link inicio px-3 fw-semibold ${seccionActiva === "inicio" ? "active-link" : ""}`}
+                                    onClick={() => setSeccionActiva("inicio")}
                                 >
 
                                     Inicio
@@ -94,7 +113,8 @@ function Header() {
 
                                 <a
                                     href="#sobre-nosotros"
-                                    className="nav-link px-3 link-dark fw-semibold"
+                                    className={`nav-link px-3 link-dark fw-semibold ${seccionActiva === "sobre" ? "active-link" : ""}`}
+                                    onClick={() => setSeccionActiva("sobre")}
                                 >
 
                                     Sobre Nosotros
@@ -102,25 +122,6 @@ function Header() {
                                 </a>
 
                             </li>
-
-
-
-
-
-                            <li className="nav-item">
-
-                                <a
-                                    href="/login"
-                                    className="nav-link px-3 link-dark fw-semibold"
-                                >
-
-                                    Portal Médico
-
-                                </a>
-
-                            </li>
-
-
 
 
                         </ul>
@@ -150,17 +151,11 @@ function Header() {
 
 
 
-                            <button
-
-                                type="button"
-
-                                className="btn btn-outline-brand fw-semibold text-nowrap"
-
-                            >
+                            <a href="/solicitar-demo" className="btn btn-outline-brand fw-semibold text-nowrap">
 
                                 Solicitar Demo
 
-                            </button>
+                            </a>
 
 
 
@@ -172,7 +167,7 @@ function Header() {
 
                                 href="/login"
 
-                                className="btn btn-brand-primary fw-semibold text-nowrap d-none d-sm-inline-block"
+                                className="btn btn-brand-primary fw-semibold text-nowrap d-inline-block"
 
                             >
 
