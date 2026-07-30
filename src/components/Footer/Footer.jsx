@@ -65,10 +65,6 @@ function Footer() {
                             </li>
 
 
-                            <li className="mb-2">
-                                </a>
-                            </li>
-
 
                         </ul>
 
