@@ -132,7 +132,8 @@
   margin: 4px 0 0 0;
   font-size: 18px;
   color: #64748b;
-}
+ }
+
 
 .horario-meta {
   display: flex;
@@ -264,6 +265,9 @@
 }
 
 .status-completado { background-color: #e2fbe8; color: #15803d; }
+.status-pendiente { background-color: #dbeafe; color: #1d4ed8; }
+.status-confirmada { background-color: #e2fbe8; color: #15803d; }
+.status-en-espera { background-color: #f1f5f9; color: #475569; }
 .status-siguiente { background-color: #dbeafe; color: #1d4ed8; }
 .status-espera { background-color: #f1f5f9; color: #475569; }
 .status-programado { background-color: #f8fafc; color: #94a3b8; border: 1px solid #e2e8f0; }
@@ -418,6 +422,7 @@
     padding: 16px 0;
     font-size: 0.95rem;
   }
+
   .horario-meta {
     align-items: start;
   }
@@ -534,8 +539,5 @@ html.dark .avatar-wrapper {
 html.dark .SaludoDoctor p {
   color: #94A3B8
 }
-
-
-
 
 

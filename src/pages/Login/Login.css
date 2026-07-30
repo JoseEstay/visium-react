@@ -49,9 +49,12 @@
 }
 
 .brand-title {
+    display: inline-block;
     margin: 0 0 12px;
     font-size: 1.3rem;
     font-weight: 700;
+    color: inherit;
+    text-decoration: none;
 }
 
 .brand-subtitle {
@@ -122,6 +125,14 @@
     font-size: 1.3rem;
     font-weight: 700;
     line-height: 1;
+    text-decoration: none;
+}
+
+.brand-title:hover,
+.logo-row:hover {
+    color: inherit;
+    text-decoration: none;
+    opacity: .82;
 }
 
 .logo-row i {
@@ -258,6 +269,8 @@
 }
 
 .bottom-row a:hover { text-decoration: underline; }
+.reset-card{max-width:480px}.reset-input{height:40px;border:1px solid #cbd2df;background:#f4f5f7;font-size:.8rem}.reset-message{margin:0 0 16px;color:#b91c1c;font-size:.78rem}.reset-back{display:block;margin-top:20px;color:var(--visium-blue);font-size:.78rem;text-align:center;text-decoration:none}
+.support-link{color:#4f5869;text-decoration:none}.support-link:hover{color:var(--visium-blue)}.contact-message{min-height:110px;resize:vertical;border:1px solid #cbd2df;background:#f4f5f7;font-size:.8rem}
 
 @media (max-width: 991.98px) {
     .auth-card { max-width: 690px; }

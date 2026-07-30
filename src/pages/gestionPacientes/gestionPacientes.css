@@ -28,6 +28,7 @@
         font-family: 'Inter', sans-serif;
         background: var(--background);
         color: var(--text);
+        container-type: inline-size;
     }
 
     .container {
@@ -478,6 +479,7 @@
         width: 100%;
         overflow-x: auto;
         overscroll-behavior-x: contain;
+        -webkit-overflow-scrolling: touch;
     }
 
     tbody tr {
@@ -526,11 +528,15 @@
     }
 
     .badge {
+        display: inline-block;
+        max-width: 100%;
         padding: 8px 15px;
         border-radius: 20px;
         font-weight: 700;
         font-size: 13px;
         font-weight: 600;
+        overflow-wrap: anywhere;
+        white-space: normal;
     }
 
     .red {
@@ -956,8 +962,71 @@
             margin-top: 12px;
         }
 
-        .patients-table-scroll table {
-            min-width: 720px;
+        .patients-table-scroll {
+            overflow-x: visible;
+        }
+
+        .patients-table-scroll table,
+        .patients-table-scroll tbody,
+        .patients-table-scroll tr,
+        .patients-table-scroll td {
+            display: block;
+            width: 100%;
+            min-width: 0;
+        }
+
+        .patients-table-scroll thead {
+            display: none;
+        }
+
+        .patients-table-scroll .patient-row {
+            margin-bottom: 14px;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: #fff;
+        }
+
+        .patients-table-scroll td {
+            display: grid;
+            grid-template-columns: minmax(105px, 38%) 1fr;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 0;
+            border-top: 0;
+            border-bottom: 1px solid #edf0f4;
+        }
+
+        .patients-table-scroll td::before {
+            content: attr(data-label);
+            color: var(--subtitle);
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .patients-table-scroll td.patient {
+            display: grid;
+            grid-template-columns: minmax(105px, 38%) 48px 1fr;
+            gap: 10px;
+        }
+
+        .patient img {
+            width: 48px;
+            height: 48px;
+        }
+
+        .patients-table-scroll td:last-child {
+            border-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .row-actions,
+        .recipe-btn {
+            width: 100%;
+        }
+
+        .recipe-btn {
+            flex: 1;
         }
 
         th,
@@ -981,6 +1050,81 @@
         .modal-content form {
             padding: 20px;
         }
+    }
+
+    @media (min-width: 768px) and (max-width: 1100px) {
+        .dashboard {
+            padding: 24px;
+        }
+
+        .cards {
+            gap: 16px;
+        }
+
+        .patients-container {
+            padding: 20px;
+        }
+
+        .patients-table-scroll table {
+            min-width: 0;
+            table-layout: fixed;
+        }
+
+        .patients-table-scroll th:nth-child(1) { width: 20%; }
+        .patients-table-scroll th:nth-child(2) { width: 9%; }
+        .patients-table-scroll th:nth-child(3) { width: 14%; }
+        .patients-table-scroll th:nth-child(4) { width: 34%; }
+        .patients-table-scroll th:nth-child(5) { width: 23%; }
+
+        .patients-table-scroll td:nth-child(4) {
+            overflow-wrap: anywhere;
+        }
+
+        .row-actions {
+            width: 100%;
+        }
+
+        .recipe-btn {
+            min-width: 0;
+            padding: 10px;
+            font-size: 0;
+        }
+
+        .recipe-btn i {
+            font-size: 16px;
+        }
+
+        th,
+        td {
+            padding: 13px 10px;
+        }
+
+        .patient {
+            gap: 10px;
+        }
+
+        .patient img {
+            width: 44px;
+            height: 44px;
+        }
+
+        .recipe-btn {
+            padding: 10px 12px;
+        }
+    }
+
+    @container (max-width: 800px) {
+        .patients-table-scroll { overflow-x: visible; }
+        .patients-table-scroll table, .patients-table-scroll tbody, .patients-table-scroll tr, .patients-table-scroll td { display: block; width: 100%; min-width: 0; }
+        .patients-table-scroll thead { display: none; }
+        .patients-table-scroll .patient-row { margin-bottom: 14px; padding: 12px; border: 1px solid var(--border); border-radius: 12px; background: #fff; }
+        .patients-table-scroll td { display: grid; grid-template-columns: minmax(105px, 38%) 1fr; align-items: center; gap: 10px; padding: 10px 0; border-top: 0; border-bottom: 1px solid #edf0f4; }
+        .patients-table-scroll td::before { content: attr(data-label); color: var(--subtitle); font-size: 12px; font-weight: 700; }
+        .patients-table-scroll td.patient { display: grid; grid-template-columns: minmax(105px, 38%) 48px 1fr; gap: 10px; }
+        .patients-table-scroll td:last-child { border-bottom: 0; padding-bottom: 0; }
+        .patient img { width: 48px; height: 48px; }
+        .row-actions, .recipe-btn { width: 100%; }
+        .recipe-btn { flex: 1; font-size: 13px; }
     }
 
 }

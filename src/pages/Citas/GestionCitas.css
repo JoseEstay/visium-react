@@ -307,7 +307,7 @@ a {
   opacity: 5%;
 }
 
-.summary-card > span {
+.resumen-text {
   display: block;
   margin-bottom: 8px;
   font-size: 11px;
@@ -315,7 +315,7 @@ a {
   text-transform: uppercase;
 }
 
-.summary-card > strong {
+.total-citas {
   display: block;
   font-size: 30px;
   font-weight: 500;
@@ -586,5 +586,135 @@ a {
   .summary-stats {
     flex-direction: column;
     align-items: flex-start;
+  }
+}
+/* Modal de agendar cita */
+.citas-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgb(16 24 40 / 0.45);
+}
+
+.citas-modal-card {
+  width: min(440px, 100%);
+  max-height: calc(100vh - 32px);
+  overflow: auto;
+  padding: 20px;
+  background: var(--white);
+  border: 1px solid var(--gray-200);
+  border-radius: 12px;
+  box-shadow: var(--shadow-md);
+}
+
+.citas-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.citas-modal-header h2 {
+  margin: 0;
+  color: var(--blue-800);
+  font-size: 20px;
+}
+
+.citas-modal-header button {
+  border: 0;
+  background: transparent;
+  color: var(--gray-500);
+  font-size: 28px;
+  line-height: 1;
+}
+
+.citas-campo {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 14px;
+  color: var(--gray-700);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.citas-campo input {
+  width: 100%;
+  min-height: 40px;
+  padding: 8px 12px;
+  border: 1px solid var(--gray-300);
+  border-radius: 8px;
+  color: var(--gray-900);
+  font: inherit;
+  font-weight: 400;
+}
+
+.citas-horario {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.appointment small {
+  color: var(--gray-500);
+  font-size: 10px;
+}
+
+.citas-lista-pacientes {
+  max-height: 180px;
+  overflow: auto;
+  display: grid;
+  gap: 6px;
+  padding: 4px;
+  border: 1px solid var(--gray-200);
+  border-radius: 8px;
+  background: var(--gray-50);
+}
+
+.citas-lista-pacientes button {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: var(--white);
+  text-align: left;
+  font: inherit;
+  font-weight: 400;
+}
+
+.citas-lista-pacientes button strong {
+  color: var(--gray-900);
+  font-size: 13px;
+}
+
+.citas-lista-pacientes button span {
+  color: var(--gray-500);
+  font-size: 11px;
+}
+
+.citas-lista-pacientes button.activo {
+  border-color: var(--blue-800);
+  background: var(--blue-50);
+}
+
+.citas-modal-acciones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+@media (max-width: 480px) {
+  .citas-horario {
+    grid-template-columns: 1fr;
+    gap: 0;
   }
 }

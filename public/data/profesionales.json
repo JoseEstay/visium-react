@@ -1,0 +1,4 @@
+[
+  { "id": "PR-001", "nombre": "Dra. Paula Silva", "especialidad": "Oftalmología", "email": "paula.silva@visium.cl", "sucursal": "Visium Santiago Centro" },
+  { "id": "PR-002", "nombre": "Dr. Tomás Reyes", "especialidad": "Optometría", "email": "tomas.reyes@visium.cl", "sucursal": "Visium Providencia" }
+]

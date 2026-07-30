@@ -1,11 +1,29 @@
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import "./Dashboard.css";
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  const [appointments, setAppointments] = useState([]);
+  const nextAppointment = appointments[0];
+
+  useEffect(() => {
+    fetch("/data/citas.json")
+      .then((response) => response.json())
+      .then((data) => {
+        const orderedAppointments = data.sort((first, second) =>
+          new Date(first.fecha.replace(" ", "T")) - new Date(second.fecha.replace(" ", "T"))
+        );
+        setAppointments(orderedAppointments);
+      })
+      .catch((error) => console.error("Error cargando citas", error));
+  }, []);
+
+  const formatTime = (date) => date ? new Intl.DateTimeFormat("es-CL", { hour: "2-digit", minute: "2-digit", hour12: true }).format(new Date(date.replace(" ", "T"))) : "";
+  const statusClass = (status) => `status-${(status || "").toLowerCase().replace(" ", "-").normalize("NFD").replace(/[\u0300-\u036f]/g, "")}`;
 
   const irFicha = () => {
-    navigate('/paciente');
+    if (nextAppointment) navigate(`/paciente/${nextAppointment.pacienteRut}`);
   };
 
   return (
@@ -14,7 +32,7 @@ export default function Dashboard() {
         <div className="SaludoDoctor">
           <h1>Nombre de la Optica/Rol</h1>
           <p>
-            <i className="fa-solid fa-calendar" /> Jueves, 24 de Octubre • <strong>4 citas pendientes</strong> hoy
+            <i className="fa-solid fa-calendar" /> Jueves, 24 de Octubre • <strong>{appointments.filter((appointment) => appointment.estado === "Pendiente").length} citas pendientes</strong> hoy
           </p>
         </div>
       </section>
@@ -29,39 +47,27 @@ export default function Dashboard() {
                 <i className="bi bi-person-fill avatar-icono fs-1"></i>
               </div>
 
-              <div className="paciente-info">
-                <div className="nombre-badge-row">                  
-                  <h2 className="paciente-nombre">Maria González</h2> 
+              <div className="paciente-info">             
+
+                <div className="nombre-badge-row">
+                  <h2 className="paciente-nombre">{nextAppointment?.paciente || "Sin citas"}</h2>
                   <div className="btn-nuevopaciente">
                     <span className="badge-nuevo">PACIENTE NUEVO</span>
-                  </div>                 
-                </div>
+                  </div>
 
-                <p className="consulta-tipo">Consulta postoperatoria (Catarata)</p>
-                
+                <p className="consulta-tipo">{nextAppointment?.motivoConsulta || "No hay citas programadas"}</p>
+
                 <div className="horario-meta">
                   <i className="bi bi-clock"></i>
-                  <span>10:30 AM</span>
+                  <span>{formatTime(nextAppointment?.fecha)}</span>
                 </div>
               </div>
-              
             </div>
 
 
-            <button className="btn-iniciar" onClick={irFicha}>
+            <button className="btn-iniciar" onClick={irFicha} disabled={!nextAppointment}>
               <i className="bi bi-play-circle"></i>
               Confirmar cita
-            </button>
-          </div>
-
-
-          <div className="separador-vertical"></div>
-
-
-          <div className="card-derecha">
-            <button className="btn-estado" type="button">
-              <i className="bi bi-info-circle-fill"></i>
-              Estado del perfil
             </button>
           </div>
         </div>
@@ -82,38 +88,12 @@ export default function Dashboard() {
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td className="col-hora">09:00</td>
-                <td className="col-paciente">Carlos Rodriguez</td>
-                <td className="col-motivo">Examen de Fondo de Ojo</td>
-                <td>
-                  <span className="badge-status status-completado">COMPLETADO</span>
-                </td>
-              </tr>
-              <tr id="fila-maria-agenda">
-                <td className="col-hora">10:30</td>
-                <td className="col-paciente">Maria González</td>
-                <td className="col-motivo">Post-op Catarata</td>
-                <td>
-                  <span className="badge-status status-siguiente" id="status-maria-badge">SIGUIENTE</span>
-                </td>
-              </tr>
-              <tr>
-                <td className="col-hora">11:45</td>
-                <td className="col-paciente">Ana Silva</td>
-                <td className="col-motivo">Refracción Visual</td>
-                <td>
-                  <span className="badge-status status-espera">EN ESPERA</span>
-                </td>
-              </tr>
-              <tr>
-                <td className="col-hora">14:00</td>
-                <td className="col-paciente">Roberto</td>
-                <td className="col-motivo">Consulta de Ojo</td>
-                <td>
-                  <span className="badge-status status-programado">PROGRAMADO</span>
-                </td>
-              </tr>
+              {appointments.map((appointment) => <tr key={appointment.id}>
+                <td className="col-hora">{formatTime(appointment.fecha)}</td>
+                <td className="col-paciente">{appointment.paciente}</td>
+                <td className="col-motivo">{appointment.motivoConsulta}</td>
+                <td><span className={`badge-status ${statusClass(appointment.estado)}`}>{appointment.estado.toUpperCase()}</span></td>
+              </tr>)}
             </tbody>
           </table>
         </div>
@@ -121,4 +101,3 @@ export default function Dashboard() {
     </main>
   );
 }
-
