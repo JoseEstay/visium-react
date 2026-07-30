@@ -11,17 +11,49 @@ import './GestionCitas.css';
 
 const PATIENTS_KEY = 'visium.admin.pacientes';
 const CITAS_KEY = 'visium.citas';
+const FECHA_DEMO = '2025-10-24';
 
-// Octubre 2025 empieza en miércoles, por eso el mes arranca con dos días de septiembre.
-const diasPreviosDelMes = [29, 30];
-const diasDelMes = Array.from({ length: 31 }, (_, indice) => indice + 1);
-const marcasDelMes = { 4: 'has-dot', 5: 'danger-dot', 24: 'selected' };
-const formVacio = { rut: '', hora: '14:00', motivo: '' };
+const formVacio = { rut: '', fecha: FECHA_DEMO, horaInicio: '14:00', horaFin: '14:30', motivo: '' };
+
+function fechaTexto(fecha) {
+  return new Intl.DateTimeFormat('es-CL', { dateStyle: 'full' })
+    .format(new Date(`${fecha}T00:00:00`));
+}
+
+function fechaISO(fecha) {
+  return `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}-${String(fecha.getDate()).padStart(2, '0')}`;
+}
+
+function sumarMediaHora(horaInicio) {
+  const [hora, minutos] = horaInicio.split(':').map(Number);
+  return `${String(hora + Math.floor((minutos + 30) / 60)).padStart(2, '0')}:${String((minutos + 30) % 60).padStart(2, '0')}`;
+}
 
 export default function GestionCitas() {
   const [mostrarAgenda, setMostrarAgenda] = useState(false);
   const [pacientes, setPacientes] = useState([]);
   const [form, setForm] = useState(formVacio);
+  const [fechaSeleccionada, setFechaSeleccionada] = useState(FECHA_DEMO);
+  const [citas, setCitas] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem(CITAS_KEY) || '[]').map((cita) => ({
+        ...cita,
+        horaInicio: cita.horaInicio || cita.hora,
+        horaFin: cita.horaFin || sumarMediaHora(cita.hora),
+      }));
+    } catch {
+      return [];
+    }
+  });
+
+  const fecha = new Date(`${fechaSeleccionada}T00:00:00`);
+  const anio = fecha.getFullYear();
+  const mes = fecha.getMonth();
+  const primerDia = (new Date(anio, mes, 1).getDay() + 6) % 7;
+  const diasDelMes = Array.from({ length: new Date(anio, mes + 1, 0).getDate() }, (_, indice) => indice + 1);
+  const citasDelDia = citas
+    .filter((cita) => cita.fecha === fechaSeleccionada)
+    .sort((a, b) => a.horaInicio.localeCompare(b.horaInicio));
 
   useEffect(() => {
     fetch('/data/pacientes.json')
@@ -42,8 +74,8 @@ export default function GestionCitas() {
       .catch((error) => console.error('Error cargando pacientes', error));
   }, []);
 
-  const abrirAgenda = (hora = '14:00') => {
-    setForm({ ...formVacio, hora });
+  const abrirAgenda = (horaInicio = '14:00') => {
+    setForm({ ...formVacio, fecha: fechaSeleccionada, horaInicio, horaFin: sumarMediaHora(horaInicio) });
     setMostrarAgenda(true);
   };
 
@@ -52,23 +84,36 @@ export default function GestionCitas() {
     const paciente = pacientes.find((item) => item.rut === form.rut);
     if (!paciente) return;
 
-    let citas = [];
-    try {
-      citas = JSON.parse(localStorage.getItem(CITAS_KEY) || '[]');
-    } catch {
-      citas = [];
+    if (form.horaFin <= form.horaInicio) {
+      alert('La hora de término debe ser posterior a la hora de inicio.');
+      return;
+    }
+    if (citas.some((cita) =>
+      cita.fecha === form.fecha &&
+      form.horaInicio < cita.horaFin &&
+      form.horaFin > cita.horaInicio
+    )) {
+      alert('Ya existe una cita en ese horario.');
+      return;
     }
 
-    citas.push({
+    const usuario = JSON.parse(localStorage.getItem('usuarioActual') || '{}');
+    const nuevaCita = {
       id: `C-${Date.now()}`,
       pacienteRut: paciente.rut,
       pacienteNombre: paciente.nombre,
-      hora: form.hora,
+      profesional: usuario.nombre || 'Profesional por asignar',
+      sucursal: paciente.sucursal,
+      horaInicio: form.horaInicio,
+      horaFin: form.horaFin,
       motivo: form.motivo.trim(),
-      fecha: '2025-10-24',
+      fecha: form.fecha,
       estado: 'Pendiente',
-    });
-    localStorage.setItem(CITAS_KEY, JSON.stringify(citas));
+    };
+    const actualizadas = [...citas, nuevaCita];
+    localStorage.setItem(CITAS_KEY, JSON.stringify(actualizadas));
+    setCitas(actualizadas);
+    setFechaSeleccionada(form.fecha);
     setMostrarAgenda(false);
     setForm(formVacio);
   };
@@ -78,7 +123,7 @@ export default function GestionCitas() {
       <section className="page-heading">
         <div>
           <h2>Gestión de Citas</h2>
-          <p>Viernes, 24 de Octubre de 2025</p>
+          <p className="text-capitalize">{fechaTexto(fechaSeleccionada)}</p>
         </div>
         <button className="btn btn-primary" type="button" onClick={() => abrirAgenda()}>
           <img src={agendarIcon} alt="" aria-hidden="true" />
@@ -90,19 +135,22 @@ export default function GestionCitas() {
         <aside className="calendar-column" aria-label="Calendario y resumen">
           <article className="card calendar-card">
             <div className="card-header">
-              <h3>Octubre 2025</h3>
+              <h3 className="text-capitalize">{new Intl.DateTimeFormat('es-CL', { month: 'long', year: 'numeric' }).format(fecha)}</h3>
               <div className="card-actions">
-                <button className="icon-button small" type="button" aria-label="Mes anterior">&lt;</button>
-                <button className="icon-button small" type="button" aria-label="Mes siguiente">&gt;</button>
+                <button className="icon-button small" type="button" aria-label="Mes anterior" onClick={() => setFechaSeleccionada(fechaISO(new Date(anio, mes - 1, 1)))}>&lt;</button>
+                <button className="icon-button small" type="button" aria-label="Mes siguiente" onClick={() => setFechaSeleccionada(fechaISO(new Date(anio, mes + 1, 1)))}>&gt;</button>
               </div>
             </div>
             <div className="calendar">
               <span>LU</span><span>MA</span><span>MI</span><span>JU</span><span>VI</span><span>SA</span><span>DO</span>
-              {diasPreviosDelMes.map((dia) => (
-                <button className="muted" type="button" key={`previo-${dia}`}>{dia}</button>
-              ))}
+              {Array.from({ length: primerDia }, (_, indice) => <i key={indice} />)}
               {diasDelMes.map((dia) => (
-                <button className={marcasDelMes[dia]} type="button" key={dia}>{dia}</button>
+                <button
+                  className={dia === fecha.getDate() ? 'selected' : citas.some((cita) => cita.fecha === `${anio}-${String(mes + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`) ? 'has-dot' : ''}
+                  type="button"
+                  key={dia}
+                  onClick={() => setFechaSeleccionada(`${anio}-${String(mes + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`)}
+                >{dia}</button>
               ))}
             </div>
             <div className="density">
@@ -148,6 +196,7 @@ export default function GestionCitas() {
           </div>
 
           <div className="timeline">
+            {fechaSeleccionada === FECHA_DEMO && <>
             <div className="time-row">
               <time>08:00</time>
               <article className="appointment completed">
@@ -211,6 +260,24 @@ export default function GestionCitas() {
                 <button className="btn btn-danger-link" type="button">Cancelar</button>
               </article>
             </div>
+            </>}
+
+            {citasDelDia.map((cita) => (
+              <div className="time-row" key={cita.id}>
+                <time>{cita.horaInicio}</time>
+                <article className="appointment">
+                  <div className="appointment-icon">
+                    <img src={userIcon} alt="" aria-hidden="true" />
+                  </div>
+                  <div>
+                    <h4>{cita.pacienteNombre}</h4>
+                    <p>{cita.motivo}</p>
+                    <small>{cita.horaInicio}–{cita.horaFin} · {cita.profesional}</small>
+                  </div>
+                  <span className="badge warning">{cita.estado}</span>
+                </article>
+              </div>
+            ))}
 
             <div className="time-row break-row">
               <time>13:00</time>
@@ -223,7 +290,7 @@ export default function GestionCitas() {
               <time>14:00</time>
               <button className="empty-slot" type="button" onClick={() => abrirAgenda('14:00')}>
                 <img src={masIcon} alt="" aria-hidden="true" />
-                <span>Disponible para cita</span>
+                <span>Agendar en este día</span>
               </button>
             </div>
           </div>
@@ -258,14 +325,35 @@ export default function GestionCitas() {
             </label>
 
             <label className="citas-campo">
-              Hora
+              Día
               <input
-                type="time"
+                type="date"
                 required
-                value={form.hora}
-                onChange={(evento) => setForm({ ...form, hora: evento.target.value })}
+                value={form.fecha}
+                onChange={(evento) => setForm({ ...form, fecha: evento.target.value })}
               />
             </label>
+
+            <div className="citas-horario">
+              <label className="citas-campo">
+                Hora de inicio
+                <input
+                  type="time"
+                  required
+                  value={form.horaInicio}
+                  onChange={(evento) => setForm({ ...form, horaInicio: evento.target.value })}
+                />
+              </label>
+              <label className="citas-campo">
+                Hora de término
+                <input
+                  type="time"
+                  required
+                  value={form.horaFin}
+                  onChange={(evento) => setForm({ ...form, horaFin: evento.target.value })}
+                />
+              </label>
+            </div>
 
             <label className="citas-campo">
               Motivo

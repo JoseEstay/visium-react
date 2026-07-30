@@ -653,6 +653,17 @@ a {
   font-weight: 400;
 }
 
+.citas-horario {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.appointment small {
+  color: var(--gray-500);
+  font-size: 10px;
+}
+
 .citas-lista-pacientes {
   max-height: 180px;
   overflow: auto;
@@ -699,4 +710,11 @@ a {
   justify-content: flex-end;
   gap: 8px;
   margin-top: 8px;
+}
+
+@media (max-width: 480px) {
+  .citas-horario {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
 }
