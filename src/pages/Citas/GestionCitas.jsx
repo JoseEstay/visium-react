@@ -1,5 +1,17 @@
-
+import agendarIcon from '../../assets/img/agendar.svg';
+import configIcon from '../../assets/img/config.svg';
+import filtroIcon from '../../assets/img/filtro.svg';
+import imprimirIcon from '../../assets/img/imprimir.svg';
+import masIcon from '../../assets/img/mas.svg';
+import resumenBackground from '../../assets/img/resumen-dia-background.svg';
+import seguimientoIcon from '../../assets/img/seguimiento.svg';
+import userIcon from '../../assets/img/user.svg';
 import './GestionCitas.css';
+
+// Octubre 2025 empieza en miércoles, por eso el mes arranca con dos días de septiembre.
+const diasPreviosDelMes = [29, 30];
+const diasDelMes = Array.from({ length: 31 }, (_, indice) => indice + 1);
+const marcasDelMes = { 4: "has-dot", 5: "danger-dot", 24: "selected" };
 
 export default function GestionCitas() {
   return (
@@ -7,10 +19,10 @@ export default function GestionCitas() {
       <section className="page-heading">
         <div>
           <h2>Gestión de Citas</h2>
-          <p>Lunes, 24 de Octubre de 2025</p>
+          <p>Viernes, 24 de Octubre de 2025</p>
         </div>
         <button className="btn btn-primary" type="button">
-          <img src="assets/img/agendar.svg" alt="Calendario agenda" aria-hidden="true" />
+          <img src={agendarIcon} alt="Calendario agenda" aria-hidden="true" />
           <span>Agendar Nueva Cita</span>
         </button>
       </section>
@@ -19,7 +31,7 @@ export default function GestionCitas() {
         <aside className="calendar-column" aria-label="Calendario y resumen">
           <article className="card calendar-card">
             <div className="card-header">
-              <h3>Octubre 2023</h3>
+              <h3>Octubre 2025</h3>
               <div className="card-actions">
                 <button className="icon-button small" type="button" aria-label="Mes anterior">&lt;</button>
                 <button className="icon-button small" type="button" aria-label="Mes siguiente">&gt;</button>
@@ -27,32 +39,12 @@ export default function GestionCitas() {
             </div>
             <div className="calendar">
               <span>LU</span><span>MA</span><span>MI</span><span>JU</span><span>VI</span><span>SA</span><span>DO</span>
-              <button className="muted" type="button">25</button>
-              <button className="muted" type="button">26</button>
-              <button className="muted" type="button">27</button>
-              <button className="muted" type="button">28</button>
-              <button className="muted" type="button">29</button>
-              <button className="muted" type="button">30</button>
-              <button type="button">1</button>
-              <button type="button">2</button>
-              <button type="button">3</button>
-              <button className="has-dot" type="button">4</button>
-              <button className="danger-dot" type="button">5</button>
-              <button type="button">6</button>
-              <button type="button">7</button>
-              <button type="button">8</button>
-              <button type="button">9</button>
-              <button type="button">10</button>
-              <button type="button">11</button>
-              <button className="selected" type="button">24</button>
-              <button type="button">25</button>
-              <button type="button">26</button>
-              <button className="has-dot" type="button">27</button>
-              <button type="button">28</button>
-              <button type="button">29</button>
-              <button type="button">30</button>
-              <button type="button">31</button>
-              <span></span><span></span><span></span>
+              {diasPreviosDelMes.map((dia) => (
+                <button className="muted" type="button" key={`previo-${dia}`}>{dia}</button>
+              ))}
+              {diasDelMes.map((dia) => (
+                <button className={marcasDelMes[dia]} type="button" key={dia}>{dia}</button>
+              ))}
             </div>
             <div className="density">
               <p>Densidad de citas</p>
@@ -65,7 +57,7 @@ export default function GestionCitas() {
 
           <article className="summary-card">
             <div>
-              <span className="resumen-text">Resumen del día</span><br />
+              <span className="resumen-text">Resumen del día</span>
               <strong className="total-citas">12 Citas</strong>
             </div>
             <div className="summary-stats">
@@ -73,7 +65,7 @@ export default function GestionCitas() {
               <div><strong>3</strong><span>Pendientes</span></div>
               <div><strong>1</strong><span>Urgencias</span></div>
             </div>
-            <img src="assets/img/resumen-dia-background.svg" alt="resumen del dia" className="background-img" />
+            <img src={resumenBackground} alt="resumen del dia" className="background-img" />
           </article>
         </aside>
 
@@ -88,10 +80,10 @@ export default function GestionCitas() {
             </div>
             <div className="card-actions">
               <button className="icon-button filtro-btn" type="button" aria-label="Filtrar agenda">
-                <img src="/assets/img/filtro.svg" alt="filtrar" aria-hidden="true" />
+                <img src={filtroIcon} alt="filtrar" aria-hidden="true" />
               </button>
               <button className="icon-button filtro-btn" type="button" aria-label="Imprimir agenda">
-                <img src="assets/img/imprimir.svg" alt="imprimir" aria-hidden="true" />
+                <img src={imprimirIcon} alt="imprimir" aria-hidden="true" />
               </button>
             </div>
           </div>
@@ -101,7 +93,7 @@ export default function GestionCitas() {
               <time>08:00</time>
               <article className="appointment completed">
                 <div className="appointment-icon">
-                  <img src="assets/img/user.svg" alt="usuario" aria-hidden="true" />
+                  <img src={userIcon} alt="usuario" aria-hidden="true" />
                 </div>
                 <div>
                   <h4>Elena Martinez Soler</h4>
@@ -116,7 +108,7 @@ export default function GestionCitas() {
               <time>09:15</time>
               <article className="appointment selected">
                 <div className="appointment-icon primary">
-                  <img src="assets/img/seguimiento.svg" alt="seguimiento" aria-hidden="true" />
+                  <img src={seguimientoIcon} alt="seguimiento" aria-hidden="true" />
                 </div>
                 <div>
                   <h4>Javier Ruiz Gomez</h4>
@@ -124,7 +116,7 @@ export default function GestionCitas() {
                 </div>
                 <span className="badge primary">En progreso</span>
                 <button className="icon-button small" type="button" aria-label="Mas opciones">
-                  <img src="assets/img/config.svg" alt="tres puntos" aria-hidden="true" />
+                  <img src={configIcon} alt="tres puntos" aria-hidden="true" />
                 </button>
               </article>
             </div>
@@ -133,7 +125,7 @@ export default function GestionCitas() {
               <time>10:30</time>
               <article className="appointment">
                 <div className="appointment-icon">
-                  <img src="assets/img/user.svg" alt="" aria-hidden="true" />
+                  <img src={userIcon} alt="" aria-hidden="true" />
                 </div>
                 <div>
                   <h4>Sofia Castro Villalba</h4>
@@ -149,7 +141,7 @@ export default function GestionCitas() {
               <time>11:45</time>
               <article className="appointment">
                 <div className="appointment-icon">
-                  <img src="assets/img/user.svg" alt="user" aria-hidden="true" />
+                  <img src={userIcon} alt="user" aria-hidden="true" />
                 </div>
                 <div>
                   <h4>Marcos Toledo</h4>
@@ -171,7 +163,7 @@ export default function GestionCitas() {
             <div className="time-row">
               <time>14:00</time>
               <button className="empty-slot" type="button">
-                <img src="assets/img/mas.svg" alt="mas" aria-hidden="true" />
+                <img src={masIcon} alt="mas" aria-hidden="true" />
                 <span>Disponible para cita</span>
               </button>
             </div>
