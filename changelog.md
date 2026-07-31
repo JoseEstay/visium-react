@@ -1,4 +1,41 @@
 # Changelog
+## 2026-07-31
+
+### Añadido
+- Se incorporaron 25 pacientes, 3 profesionales y nuevas citas de demostración distribuidas entre julio y agosto.
+- Se incorporó la vista de Administradores de sucursal en Gestión Administrativa, disponible únicamente para los roles Jefe y Administrador de sucursales.
+- Se añadieron recetas históricas de demostración para María González.
+- Se incorporaron selectores de tema en las páginas públicas Home, Login y Solicitar demo.
+- La gestión de Citas incluye agenda diaria y semanal, calendario con indicadores de días con citas y alerta de alta ocupación desde 8 citas diarias.
+- Se añadieron formularios para agendar y reagendar citas, con búsqueda por paciente (nombre o RUT) y profesional, además de horarios en intervalos de 30 minutos.
+- Se añadió una confirmación antes de cancelar una cita.
+- Las citas canceladas permiten «Agendar nueva cita»: se precargan sus datos y, al guardar, la nueva información reemplaza el registro cancelado.
+- Se añadió una función restringida por rol para revelar temporalmente el acceso a Métricas desde el logotipo lateral.
+
+### Modificado
+- El resumen de Gestión de Citas ahora se calcula según el día seleccionado y el encabezado muestra fecha y hora actuales.
+- Se implementaron transiciones de estado: las citas pendientes o reagendadas pueden confirmarse; las confirmadas pueden reagendarse o cancelarse.
+- Los estados «En espera» y «Programada» se normalizan como «Pendiente» y «Reagendada», respectivamente.
+- Los horarios de citas se normalizan a intervalos de media hora: `:15` pasa a `:30` y `:45` pasa a la siguiente hora en `:00`.
+- Se mejoraron los modos claro y oscuro, la distribución de acciones, la responsividad de la agenda y la visualización de citas canceladas.
+- Se aplicó el estilo de foco azul en modo oscuro a los campos de texto del proyecto.
+- Se ajustaron las páginas de pacientes, recetas e historial de recetas para usar datos JSON y mantener coherencia visual entre ambos modos.
+- El historial de recetas desde Gestión Administrativa abre la página de historial del paciente seleccionado mediante su RUT.
+- Las eliminaciones de Gestión Administrativa ahora se realizan mediante una ventana de confirmación con contraseña; al eliminar un administrador se valida la contraseña de su propia cuenta y para los demás registros, la del usuario autenticado.
+- Se extendió el modo oscuro a Home, Login y Solicitar demo, incluidos formularios, navegación, tarjetas, pie de página y controles de tema.
+- Se unificó el estilo de escritura, foco, placeholder, cursor y autocompletado para todos los campos editables en modo oscuro.
+
+### Corregido
+- Se corrigieron la carga de citas en fechas con formato de fecha y hora combinado, incluido el 31 de julio.
+- Se corrigió la detección visual de alta densidad en el calendario para ambos modos de color.
+- Se corrigió la adaptación de la lista de citas en pantallas angostas y en anchos reducidos por paneles de herramientas.
+- Se corrigieron errores de datos locales en `NuevoPaciente.jsx` y de generación de identificadores en `Recetas.jsx`.
+- Se corrigió la separación de datos guardados entre Sucursales y Profesionales en Gestión Administrativa.
+- Se corrigió el fondo blanco que Bootstrap aplicaba a los campos del Login y Solicitar demo al enfocarlos o escribir texto.
+
+### Quitado
+- Se eliminaron los filtros e impresión de la vista Gestión de Citas, los controles «Lejos/Cerca» duplicados de Recetas y el acceso «Volver al expediente».
+
 ## 2026-07-29
 
 ### Añadido

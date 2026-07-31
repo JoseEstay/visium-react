@@ -244,7 +244,8 @@ body {
     justify-content: flex-end; 
 }
 
-.historial button { 
+.historial button,
+.historial a {
     background: #f9fafb; 
     border: 1px solid #dce4ef; 
     border-radius: 6px; 
@@ -254,9 +255,11 @@ body {
     font-weight: 600; 
     transition: .3s; 
     font-size: 14px; 
+    text-decoration: none;
 }
 
-.historial button:hover { 
+.historial button:hover,
+.historial a:hover {
     background: #e5e7eb; 
 }
 
@@ -269,6 +272,39 @@ body {
 }
 
 .contenido-receta > div { width: 100%; }
+
+.receta-volver-fila {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 12px;
+}
+
+.receta-volver-paciente {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 14px;
+    border: 1px solid #bfdbfe;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #1d4ed8;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.receta-volver-paciente:hover {
+    background: #eff6ff;
+    border-color: #3b82f6;
+    color: #1e40af;
+}
+
+.breadcrumb-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
 
 /* Columna Izquierda (Óptica) */
 .receta-card { 
@@ -295,6 +331,27 @@ body {
     display: flex; 
     align-items: center; 
     gap: 10px; 
+}
+
+.tipo-vision-control {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #64748b;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.tipo-vision-control select {
+    min-width: 112px;
+    padding: 7px 10px;
+    border: 1px solid #dce4ef;
+    border-radius: 6px;
+    background: #fff;
+    color: #374151;
+    font: inherit;
+    text-transform: none;
 }
 
 .botones-receta { 
@@ -381,6 +438,44 @@ body {
     color: #4b5563; 
     font-size: 11px; 
     text-transform: uppercase; 
+}
+
+/* Separa el diagnóstico del bloque de observaciones dentro de la misma tarjeta. */
+.grupo input + label {
+    margin-top: 16px;
+}
+
+.receta-card .grupo > label,
+.receta-card .grupo > input,
+.receta-card .grupo > textarea {
+    width: 100%;
+    text-align: left;
+}
+
+.receta-card .grupo > label {
+    align-self: flex-start;
+    padding-left: 14px;
+}
+
+.receta-card .grupo > input,
+.receta-card .grupo > textarea {
+    padding-left: 14px;
+    padding-right: 14px;
+}
+
+.receta-card .grupo > textarea {
+    min-height: 120px;
+    height: auto;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    resize: none;
+    overflow: hidden;
+}
+
+html.dark .receta-card input::placeholder,
+html.dark .receta-card textarea::placeholder {
+    color: #94a3b8;
+    opacity: 1;
 }
 
 .grupo input, 
@@ -565,4 +660,121 @@ body {
     .acciones-footer { align-items: stretch; flex-direction: column; gap: 16px; }
     .acciones-botones { flex-direction: column; gap: 10px; }
     .btn-guardar, .btn-imprimir { justify-content: center; width: 100%; }
+}
+
+/* Modo oscuro: tabla de refracción y sus contenedores. */
+html.dark .receta-page,
+html.dark .breadcrumb-bar {
+    background: #0f172a;
+    color: #e2e8f0;
+}
+
+html.dark .breadcrumb-bar > span,
+html.dark .breadcrumb-bar > span span {
+    color: #ffffff;
+}
+
+html.dark .receta-volver-paciente {
+    background: #172033;
+    border-color: #334155;
+    color: #dbeafe;
+}
+
+html.dark .receta-volver-paciente:hover {
+    background: #24324a;
+    border-color: #3b82f6;
+    color: #ffffff;
+}
+
+html.dark .paciente-card,
+html.dark .receta-card {
+    background: #1e293b;
+    border-color: #334155;
+}
+
+html.dark .tabla-receta th {
+    color: #94a3b8;
+    border-bottom-color: #475569;
+}
+
+html.dark .tabla-receta td {
+    color: #e2e8f0;
+    border-bottom-color: #334155;
+}
+
+html.dark .tabla-receta td:first-child,
+html.dark .grupo label {
+    color: #bfdbfe;
+}
+
+html.dark .tabla-receta input,
+html.dark .receta-card input,
+html.dark .receta-card textarea,
+html.dark .receta-card select {
+    background: #0f172a;
+    border-color: #334155;
+    color: #f8fafc;
+}
+
+html.dark .receta-card input:focus,
+html.dark .receta-card textarea:focus,
+html.dark .receta-card select:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, .25);
+}
+
+html.dark .tipo-vision-control { color: #bfdbfe; }
+html.dark .tipo-vision-control select { background: #0f172a; border-color: #475569; color: #f8fafc; }
+
+html.dark .datos-paciente h2,
+html.dark .titulo-receta h2,
+html.dark .paciente-card h4 {
+    color: #f8fafc;
+}
+
+html.dark .datos-paciente p,
+html.dark .diagnostico span,
+html.dark .ultima-visita span {
+    color: #94a3b8;
+}
+
+html.dark .diagnostico h4 {
+    color: #60a5fa;
+}
+
+html.dark .grupo label,
+html.dark .receta-card .text-dark {
+    color: #bfdbfe !important;
+}
+
+html.dark .receta-card textarea.bg-light {
+    background: #0f172a !important;
+    color: #f8fafc !important;
+}
+
+html.dark .historial button,
+html.dark .historial a,
+html.dark .btn-guardar {
+    background: #334155;
+    border-color: #475569;
+    color: #f8fafc;
+}
+
+html.dark .historial button:hover,
+html.dark .historial a:hover,
+html.dark .btn-guardar:hover {
+    background: #475569;
+}
+
+html.dark .acciones-footer {
+    border-top-color: #475569 !important;
+}
+
+html.dark .btn-volver {
+    color: #94a3b8;
+}
+
+html.dark .btn-volver:hover {
+    color: #bfdbfe;
 }

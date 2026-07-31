@@ -7,7 +7,7 @@ function Home() {
 
     return (
 
-        <main>
+        <main className="home-page">
 
 
             {/* HERO SECTION */}

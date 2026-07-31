@@ -198,6 +198,7 @@
 
 /* Enlaces de Navegación */
 .sidebar .menu a,
+.sidebar .menu .nav-link-button,
 .sidebar .menu .admin-toggle,
 .sidebar .sidebar-bottom a {
   display: flex;
@@ -210,6 +211,13 @@
   font-weight: 500;
   text-decoration: none;
   transition: background-color 0.2s ease, color 0.2s ease;
+}
+.sidebar .menu .nav-link-button {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
 }
 .sidebar .menu .admin-toggle{width:100%;border:0;background:transparent;text-align:left;cursor:pointer}.sidebar .menu .admin-toggle:hover{background:#fff;color:#003896}.admin-chevron{margin-left:auto;font-size:12px!important}.admin-submenu{display:flex;flex-direction:column;padding-left:14px}.sidebar .menu .admin-submenu a{padding-top:9px;padding-bottom:9px;font-size:13px}
 
@@ -240,9 +248,69 @@
 }
 
 .sidebar .menu a:hover,
+.sidebar .menu .nav-link-button:hover,
 .sidebar .sidebar-bottom a:hover {
   background: #ffffff;
   color: #003896;
+}
+
+.development-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(1, 15, 31, 0.64);
+}
+
+.development-modal {
+  width: min(100%, 390px);
+  padding: 32px;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 24px 56px rgba(1, 15, 31, 0.28);
+  text-align: center;
+}
+
+.development-modal-icon {
+  display: inline-flex;
+  width: 52px;
+  height: 52px;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+  border-radius: 50%;
+  background: #dbeafe;
+  color: #003896;
+  font-size: 24px;
+}
+
+.development-modal h2 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 22px;
+}
+
+.development-modal p {
+  margin: 12px 0 24px;
+  color: #475569;
+  line-height: 1.5;
+}
+
+.development-modal button {
+  width: 100%;
+  padding: 11px 16px;
+  border: 0;
+  border-radius: 8px;
+  background: #003896;
+  color: #ffffff;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.development-modal button:hover {
+  background: #002b73;
 }
 
 .sidebar .menu a.active {

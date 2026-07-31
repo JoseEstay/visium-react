@@ -1,4 +1,7 @@
 [
   { "id": "PR-001", "nombre": "Dra. Paula Silva", "especialidad": "Oftalmología", "email": "paula.silva@visium.cl", "sucursal": "Visium Santiago Centro" },
-  { "id": "PR-002", "nombre": "Dr. Tomás Reyes", "especialidad": "Optometría", "email": "tomas.reyes@visium.cl", "sucursal": "Visium Providencia" }
+  { "id": "PR-002", "nombre": "Dr. Tomás Reyes", "especialidad": "Optometría", "email": "tomas.reyes@visium.cl", "sucursal": "Visium Providencia" },
+  { "id": "PR-003", "nombre": "Dra. Elena Martínez", "especialidad": "Oftalmología", "email": "elena.martinez@visium.cl", "sucursal": "Visium Santiago Centro" },
+  { "id": "PR-004", "nombre": "Dr. Javier Muñoz", "especialidad": "Contactología", "email": "javier.munoz@visium.cl", "sucursal": "Visium Providencia" },
+  { "id": "PR-005", "nombre": "Dra. Sofía Carrasco", "especialidad": "Optometría", "email": "sofia.carrasco@visium.cl", "sucursal": "Visium Santiago Centro" }
 ]

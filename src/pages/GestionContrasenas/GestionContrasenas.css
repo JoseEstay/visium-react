@@ -1,1 +1,24 @@
 .password-page{max-width:1100px;margin:auto}.password-heading h1{margin:0;color:#173b73;font-size:28px}.password-heading p{color:#64748b;margin:8px 0 24px}.password-grid{display:grid;grid-template-columns:minmax(280px,1fr) minmax(340px,1.1fr);gap:22px}.user-list,.password-card{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:20px}.user-list h2,.password-card h2{margin:0 0 16px;font-size:19px;color:#334155}.user-list button{width:100%;border:0;border-bottom:1px solid #e2e8f0;background:#fff;padding:14px 5px;display:flex;align-items:center;gap:10px;text-align:left;color:#334155}.user-list button.selected{background:#eff6ff;color:#003896}.user-list button>i:first-child{font-size:24px}.user-list button>i:last-child{margin-left:auto}.user-list span{display:grid;gap:3px}.user-list small{color:#64748b}.password-card form{display:grid;gap:15px}.password-card label{display:grid;gap:7px;font-weight:600;color:#334155}.password-card input{border:1px solid #cbd5e1;border-radius:8px;padding:11px}.password-input{display:flex;align-items:center;border:1px solid #cbd5e1;border-radius:8px}.password-input input{flex:1;border:0}.password-input button{border:0;background:transparent;padding:8px 10px;color:#64748b}.password-card form>button{border:0;border-radius:8px;background:#003896;color:#fff;padding:12px;font-weight:600}.error{margin:0;color:#b91c1c}.success{margin:0;color:#15803d}.empty-password{height:100%;min-height:230px;display:grid;place-content:center;text-align:center;color:#64748b}.empty-password i{font-size:38px;color:#003896}@media(max-width:700px){.password-grid{grid-template-columns:1fr}}
+
+html.dark .password-page { color: #e2e8f0; }
+html.dark .password-heading h1 { color: #60a5fa; }
+html.dark .password-heading p,
+html.dark .user-list small,
+html.dark .empty-password { color: #94a3b8; }
+html.dark .user-list,
+html.dark .password-card { background: #1e293b; border-color: #334155; }
+html.dark .user-list h2,
+html.dark .password-card h2,
+html.dark .password-card label { color: #f8fafc; }
+html.dark .user-list button { background: #1e293b; border-bottom-color: #334155; color: #e2e8f0; }
+html.dark .user-list button:hover { background: #27364b; }
+html.dark .user-list button.selected { background: #172554; color: #bfdbfe; }
+html.dark .user-list button.selected small { color: #93c5fd; }
+html.dark .password-card input,
+html.dark .password-input { background: #0f172a; border-color: #475569; color: #f8fafc; }
+html.dark .password-card input:focus { outline: 0; border-color: #3b82f6; box-shadow: 0 0 0 3px rgb(59 130 246 / .2); }
+html.dark .password-input button { color: #94a3b8; }
+html.dark .password-input button:hover { color: #bfdbfe; }
+html.dark .empty-password i { color: #60a5fa; }
+html.dark .error { color: #fca5a5; }
+html.dark .success { color: #86efac; }

@@ -159,6 +159,8 @@
   font-weight: 600;
   cursor: pointer;
   width: 100%;
+  margin-top: 12px;
+  margin-inline: auto;
 }
 
 .separador-vertical {
@@ -267,10 +269,11 @@
 .status-completado { background-color: #e2fbe8; color: #15803d; }
 .status-pendiente { background-color: #dbeafe; color: #1d4ed8; }
 .status-confirmada { background-color: #e2fbe8; color: #15803d; }
-.status-en-espera { background-color: #f1f5f9; color: #475569; }
+.status-en-espera { background-color: #fef3c7; color: #92400e; }
 .status-siguiente { background-color: #dbeafe; color: #1d4ed8; }
 .status-espera { background-color: #f1f5f9; color: #475569; }
 .status-programado { background-color: #f8fafc; color: #94a3b8; border: 1px solid #e2e8f0; }
+.status-reagendada { background-color: #ede9fe; color: #6d28d9; }
 .status-en-curso { background-color: #fef3c7; color: #b45309; }
 
 
@@ -338,8 +341,11 @@
     margin: 0 auto; 
   }
 
-  .Saludo{
-    padding-left: 70px;
+  .Saludo {
+    max-width: 850px;
+    margin: 0 auto;
+    padding-left: 0;
+    text-align: left;
   }
 
   .Saludo h1 {
@@ -355,7 +361,15 @@
     padding: 24px;
     flex-direction: row;
     align-items: center;
-    
+    justify-content: center;
+  }
+
+  .card-izquierda {
+    align-items: center;
+  }
+
+  .paciente-header {
+    justify-content: center;
   }
 
   .avatar-wrapper {
@@ -368,10 +382,10 @@
   }
 
   .paciente-info {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start; 
-  flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    flex-grow: 0;
   }
 
   .paciente-nombre {
@@ -406,7 +420,6 @@
 
   .btn-iniciar {
     max-width: 300px;
-    margin-left: 160px;
   }
 
   .agenda-container {
@@ -461,25 +474,44 @@ html.dark .agenda-container {
 
 html.dark .status-completado {
   background-color: #14532D; 
-  color: #15803d; 
+  color: #bbf7d0;
+  border-radius: 8px;
+}
+
+html.dark .status-pendiente {
+  background-color: #1e3a8a;
+  color: #bfdbfe;
+  border-radius: 8px;
+}
+
+html.dark .status-confirmada {
+  background-color: #14532d;
+  color: #bbf7d0;
   border-radius: 8px;
 }
 
 html.dark .status-siguiente {
   background-color: #1E3A8A;
-  color: #1d4ed8;
+  color: #bfdbfe;
   border-radius: 8px;
 }
-html.dark .status-espera { 
-  background-color: #1F2937; 
-  color: #9CA3AF; 
+html.dark .status-espera,
+html.dark .status-en-espera {
+  background-color: #78350f;
+  color: #fde68a;
   border-radius: 8px;
 }
 
 html.dark .status-programado { 
   background-color: #2C3A4C; 
-  color: #94A3B8; 
+  color: #cbd5e1;
   border: 1px solid #2C3A4C; 
+  border-radius: 8px;
+}
+
+html.dark .status-reagendada {
+  background-color: #4c1d95;
+  color: #e9d5ff;
   border-radius: 8px;
 }
 
@@ -487,10 +519,6 @@ html.dark .card-paciente {
   background: #1E293B;
   border-color: #334155;
 } 
-
-html.dark .badge-status {
-  color: #F8FAFC;
-}
 
 html.dark .btn-iniciar {
   background-color: #1E3A8A;
@@ -539,5 +567,3 @@ html.dark .avatar-wrapper {
 html.dark .SaludoDoctor p {
   color: #94A3B8
 }
-
-

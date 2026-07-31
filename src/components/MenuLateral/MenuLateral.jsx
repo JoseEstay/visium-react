@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { NavLink } from "react-router-dom";
 import eyeLogo from "../../assets/logo-eye.svg";
 import "./Menu.css";
@@ -15,15 +15,55 @@ const navigationItems = [
 export default function MenuLateral() {
   const [isOpen, setIsOpen] = useState(false);
   const [adminOpen, setAdminOpen] = useState(false);
+  const [isDevelopmentModalOpen, setIsDevelopmentModalOpen] = useState(false);
+  const [metricsVisible, setMetricsVisible] = useState(false);
+  const metricsClickCount = useRef(0);
+  const metricsClickTimer = useRef(null);
   const user = JSON.parse(localStorage.getItem("usuarioActual") || "null");
+  const canUnlockMetrics = ["administrador sucursales", "administrador sucursal", "jefe"].includes(user?.rol);
   const adminItems = ["administrador sucursales", "jefe"].includes(user?.rol)
-    ? ["sucursales", "profesionales", "recepcionistas", "citas", "pacientes"]
+    ? ["sucursales", "administradores", "profesionales", "recepcionistas", "citas", "pacientes"]
     : user?.rol === "administrador sucursal"
       ? ["profesionales", "recepcionistas", "citas", "pacientes"]
       : [];
 
   const toggleMenu = () => setIsOpen((open) => !open);
   const closeMenu = () => setIsOpen(false);
+  const openDevelopmentModal = () => {
+    closeMenu();
+    setIsDevelopmentModalOpen(true);
+  };
+  const unlockMetrics = () => {
+    if (canUnlockMetrics) setMetricsVisible(true);
+  };
+  const handleMetricsClick = () => {
+    metricsClickCount.current += 1;
+    window.clearTimeout(metricsClickTimer.current);
+
+    if (metricsClickCount.current === 3) {
+      setMetricsVisible(false);
+      setIsDevelopmentModalOpen(false);
+      metricsClickCount.current = 0;
+      return;
+    }
+
+    metricsClickTimer.current = window.setTimeout(() => {
+      if (metricsClickCount.current === 1) openDevelopmentModal();
+      metricsClickCount.current = 0;
+    }, 550);
+  };
+
+  useEffect(() => {
+    const closeOnEscape = (event) => {
+      if (event.key === "Escape") setIsDevelopmentModalOpen(false);
+    };
+
+    window.addEventListener("keydown", closeOnEscape);
+    return () => window.removeEventListener("keydown", closeOnEscape);
+  }, []);
+
+  useEffect(() => () => window.clearTimeout(metricsClickTimer.current), []);
+
   const navigationClassName = (matchActive) => ({ isActive }) =>
     `nav-link${isActive && matchActive ? " active" : ""}`;
 
@@ -47,7 +87,7 @@ export default function MenuLateral() {
           />
         </button>
 
-        <div className="logo-icon">
+        <div className="logo-icon" onDoubleClick={unlockMetrics}>
           <img src={eyeLogo} alt="" aria-hidden="true" />
         </div>
         <div>
@@ -59,23 +99,33 @@ export default function MenuLateral() {
       </div>
 
       <nav className="menu">
-        {navigationItems.filter((item) => !item.roles || item.roles.includes(user?.rol)).map(({ to, icon, label, matchActive = true }) => (
-          <NavLink
-            key={label}
-            to={to}
-            className={navigationClassName(matchActive)}
-            onClick={closeMenu}
-          >
-            <i className={`bi ${icon}`}></i>
-            <span className="nav-label">{label}</span>
-          </NavLink>
+        {navigationItems.filter((item) => {
+          if (item.label === "Métricas") return metricsVisible && item.roles.includes(user?.rol);
+          return !item.roles || item.roles.includes(user?.rol);
+        }).map(({ to, icon, label, matchActive = true }) => (
+          label === "Métricas" ? (
+            <button key={label} type="button" className="nav-link nav-link-button" onClick={handleMetricsClick}>
+              <i className={`bi ${icon}`}></i>
+              <span className="nav-label">{label}</span>
+            </button>
+          ) : (
+            <NavLink
+              key={label}
+              to={to}
+              className={navigationClassName(matchActive)}
+              onClick={closeMenu}
+            >
+              <i className={`bi ${icon}`}></i>
+              <span className="nav-label">{label}</span>
+            </NavLink>
+          )
         ))}
         {adminItems.length > 0 && <div className="admin-navigation">
           <button type="button" className="admin-toggle" onClick={() => setAdminOpen((open) => !open)} aria-expanded={adminOpen}>
             <i className="bi bi-gear-fill" /><span className="nav-label">Gestión Administrativa</span><i className={`bi bi-chevron-${adminOpen ? "up" : "down"} admin-chevron`} />
           </button>
           {adminOpen && <div className="admin-submenu">
-            {adminItems.map((item) => <NavLink key={item} to={`/gestion-administrativa/${item}`} onClick={closeMenu}><i className="bi bi-chevron-right" /><span className="nav-label">{item === "pacientes" ? "Pacientes y recetas" : item.charAt(0).toUpperCase() + item.slice(1)}</span></NavLink>)}
+            {adminItems.map((item) => <NavLink key={item} to={`/gestion-administrativa/${item}`} onClick={closeMenu}><i className="bi bi-chevron-right" /><span className="nav-label">{item === "pacientes" ? "Pacientes y recetas" : item === "administradores" ? "Administradores de sucursal" : item.charAt(0).toUpperCase() + item.slice(1)}</span></NavLink>)}
             <NavLink to="/gestion-administrativa/contrasenas" onClick={closeMenu}><i className="bi bi-key" /><span className="nav-label">Contraseñas</span></NavLink>
           </div>}
         </div>}
@@ -87,6 +137,17 @@ export default function MenuLateral() {
           <span className="nav-label">Cerrar Sesión</span>
         </NavLink>
       </div>
+
+      {isDevelopmentModalOpen && (
+        <div className="development-modal-backdrop" role="presentation" onMouseDown={() => setIsDevelopmentModalOpen(false)}>
+          <section className="development-modal" role="dialog" aria-modal="true" aria-labelledby="development-modal-title" onMouseDown={(event) => event.stopPropagation()}>
+            <i className="bi bi-tools development-modal-icon" aria-hidden="true"></i>
+            <h2 id="development-modal-title">Sección en desarrollo</h2>
+            <p>Estamos preparando las métricas para entregarte una mejor experiencia.</p>
+            <button type="button" onClick={() => setIsDevelopmentModalOpen(false)}>Entendido</button>
+          </section>
+        </div>
+      )}
     </aside>
   );
 }

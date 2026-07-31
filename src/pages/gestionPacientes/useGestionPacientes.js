@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 
 const PATIENTS_STORAGE_KEY = "visium.admin.pacientes";
+const CITAS_STORAGE_KEY = "visium.citas";
 const emptyPersonalData = {
   nombre: "",
   rut: "",
@@ -47,19 +48,26 @@ function normalizePatient(patient) {
   };
 }
 
+function fechaActualISO() {
+  const hoy = new Date();
+  return `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, "0")}-${String(hoy.getDate()).padStart(2, "0")}`;
+}
+
 export function useGestionPacientes() {
   const [patients, setPatients] = useState([]);
+  const [citasHoy, setCitasHoy] = useState(0);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [filterTab, setFilterTab] = useState("all");
+  const [sortOption, setSortOption] = useState("nombre-asc");
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingIndex, setEditingIndex] = useState(-1);
   const [formData, setFormData] = useState(emptyPersonalData);
 
   const [contextMenu, setContextMenu] = useState({ visible: false, x: 0, y: 0, patientIndex: -1 });
-  const rowsPerPage = 3;
+  const rowsPerPage = 10;
 
   // Fuente única: datos de pacientes y fichas. Se conserva en localStorage tras una edición.
   useEffect(() => {
@@ -89,6 +97,21 @@ export function useGestionPacientes() {
   }, []);
 
   useEffect(() => {
+    fetch("/data/citas.json", { cache: "no-store" })
+      .then((response) => response.ok ? response.json() : [])
+      .then((citasBase) => {
+        let citasGuardadas = [];
+        try { citasGuardadas = JSON.parse(localStorage.getItem(CITAS_STORAGE_KEY) || "[]"); } catch { citasGuardadas = []; }
+
+        const citasPorId = new Map(citasBase.map((cita) => [cita.id, cita]));
+        citasGuardadas.forEach((cita) => citasPorId.set(cita.id, cita));
+        const hoy = fechaActualISO();
+        setCitasHoy([...citasPorId.values()].filter((cita) => String(cita.fecha || "").slice(0, 10) === hoy).length);
+      })
+      .catch((error) => console.error("Error cargando citas", error));
+  }, []);
+
+  useEffect(() => {
     if (patients.length) localStorage.setItem(PATIENTS_STORAGE_KEY, JSON.stringify(patients));
   }, [patients]);
 
@@ -104,8 +127,18 @@ export function useGestionPacientes() {
     const matchSearch = p.nombre.toLowerCase().includes(searchQuery.toLowerCase()) ||
       p.rut.toLowerCase().includes(searchQuery.toLowerCase()) ||
       p.condicion.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchTab = filterTab === "all" ? true : p.condicion !== "Inactivo";
+    const matchTab = filterTab === "all" ? true : p.estado !== "Desactivado";
     return matchSearch && matchTab;
+  });
+
+  const collator = new Intl.Collator("es", { sensitivity: "base" });
+  const apellido = (nombre = "") => nombre.trim().split(/\s+/).at(-1) || "";
+  const [sortField, sortDirection] = sortOption.split("-");
+  filteredPatients = [...filteredPatients].sort((first, second) => {
+    const firstValue = sortField === "edad" ? Number(first.edad) || 0 : sortField === "apellido" ? apellido(first.nombre) : first.nombre;
+    const secondValue = sortField === "edad" ? Number(second.edad) || 0 : sortField === "apellido" ? apellido(second.nombre) : second.nombre;
+    const comparison = typeof firstValue === "number" ? firstValue - secondValue : collator.compare(firstValue, secondValue);
+    return sortDirection === "desc" ? -comparison : comparison;
   });
 
   // Lógica de Paginación
@@ -167,6 +200,12 @@ export function useGestionPacientes() {
     }
   };
 
+  const handleReactivatePatient = (index) => {
+    setPatients((current) => current.map((patient, patientIndex) =>
+      patientIndex === index ? { ...patient, estado: "Activo" } : patient
+    ));
+  };
+
   const handleContextMenu = (e, index) => {
     e.stopPropagation();
 
@@ -202,9 +241,9 @@ export function useGestionPacientes() {
 
   // Retornamos todo lo que la interfaz (JSX) va a necesitar
   return {
-    patients, searchQuery, setSearchQuery, currentPage, setCurrentPage,
-    filterTab, setFilterTab, isModalOpen, setIsModalOpen, formData, setFormData,
+    patients, citasHoy, searchQuery, setSearchQuery, currentPage, setCurrentPage,
+    filterTab, setFilterTab, sortOption, setSortOption, isModalOpen, setIsModalOpen, formData, setFormData,
     contextMenu, editingIndex, filteredPatients, currentPatients, totalPages,
-    startRecord, endRecord, handleOpenModal, handleFormSubmit, handleDeletePatient, handleContextMenu
+    startRecord, endRecord, handleOpenModal, handleFormSubmit, handleDeletePatient, handleReactivatePatient, handleContextMenu
   };
 }

@@ -348,7 +348,7 @@
 
     .cards {
         display: grid;
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 25px;
     }
 
@@ -580,6 +580,22 @@
         box-shadow: 0 14px 25px rgba(37, 99, 235, .35);
         background: #0849a6;
     }
+
+    .reactivate-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        border: 1px solid #22c55e;
+        border-radius: 8px;
+        background: #dcfce7;
+        color: #166534;
+        cursor: pointer;
+        font-weight: 700;
+        padding: 10px 16px;
+    }
+
+    .reactivate-btn:hover { background: #bbf7d0; border-color: #15803d; }
 
     .row-actions {
         display: inline-flex;
@@ -1127,4 +1143,434 @@
         .recipe-btn { flex: 1; font-size: 13px; }
     }
 
+}
+
+/* Modo oscuro: tabla y tarjetas de Gestión de Pacientes. */
+html.dark .gestion-pacientes {
+    --background: #0f172a;
+    --card: #1e293b;
+    --border: #334155;
+    --text: #f8fafc;
+    --subtitle: #94a3b8;
+    background: var(--background);
+    width: 100%;
+    min-height: 100vh;
+}
+
+html.dark .gestion-pacientes .patients-container,
+html.dark .gestion-pacientes .card {
+    background: #1e293b;
+    border-color: #334155;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, .22);
+}
+
+html.dark .gestion-pacientes .dashboard {
+    background: #0f172a;
+}
+
+html.dark .gestion-pacientes .dashboard-header h1 {
+    color: #f8fafc;
+}
+
+html.dark .gestion-pacientes .dashboard-header p {
+    color: #94a3b8;
+}
+
+html.dark .gestion-pacientes .patients-title h2,
+html.dark .gestion-pacientes .card-info h2,
+html.dark .gestion-pacientes .patient strong {
+    color: #f8fafc;
+}
+
+html.dark .gestion-pacientes thead {
+    background: #172033;
+}
+
+html.dark .gestion-pacientes th {
+    padding: 12px 16px;
+    color: #aebfd5;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .02em;
+    text-transform: uppercase;
+    border-bottom: 1px solid #334155;
+}
+
+html.dark .gestion-pacientes th + th,
+html.dark .gestion-pacientes td + td {
+    border-left: 1px solid #334155;
+}
+
+html.dark .gestion-pacientes th:first-child {
+    border-radius: 10px 0 0 0;
+}
+
+html.dark .gestion-pacientes th:last-child {
+    border-radius: 0 10px 0 0;
+}
+
+html.dark .gestion-pacientes td {
+    color: #e2e8f0;
+    border-top-color: #334155;
+}
+
+html.dark .gestion-pacientes .patient small,
+html.dark .gestion-pacientes .patients-title span,
+html.dark .gestion-pacientes .pagination-info,
+html.dark .gestion-pacientes .pagination-buttons span {
+    color: #94a3b8;
+}
+
+html.dark .gestion-pacientes .badge.blue { background: #1e3a8a; color: #bfdbfe; }
+html.dark .gestion-pacientes .badge.green { background: #14532d; color: #bbf7d0; }
+html.dark .gestion-pacientes .badge.orange { background: #78350f; color: #fde68a; }
+html.dark .gestion-pacientes .badge.red { background: #7f1d1d; color: #fecaca; }
+
+/* Iconos de resumen: contraste consistente en ambos temas. */
+.gestion-pacientes .card-icon {
+    border: 1px solid transparent;
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / .45);
+}
+
+.gestion-pacientes .card-icon i {
+    line-height: 1;
+}
+
+.gestion-pacientes .card {
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    gap: 8px;
+}
+
+.gestion-pacientes .card-info {
+    align-items: center;
+}
+
+.gestion-pacientes .card-info h2 {
+    width: 100%;
+    margin: 0;
+    text-align: center;
+}
+
+.gestion-pacientes .card-icon.blue {
+    background: #dbeafe;
+    color: #1d4ed8;
+    border-color: #bfdbfe;
+}
+
+.gestion-pacientes .card-icon.green {
+    background: #dcfce7;
+    color: #15803d;
+    border-color: #bbf7d0;
+}
+
+.gestion-pacientes .card-icon.orange {
+    background: #ffedd5;
+    color: #c2410c;
+    border-color: #fed7aa;
+}
+
+html.dark .gestion-pacientes .card-icon {
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / .08);
+}
+
+html.dark .gestion-pacientes .card-icon.blue {
+    background: #172554;
+    color: #93c5fd;
+    border-color: #1e40af;
+}
+
+html.dark .gestion-pacientes .card-icon.green {
+    background: #052e1b;
+    color: #86efac;
+    border-color: #166534;
+}
+
+html.dark .gestion-pacientes .card-icon.orange {
+    background: #431407;
+    color: #fdba74;
+    border-color: #9a3412;
+}
+
+html.dark .gestion-pacientes .reactivate-btn {
+    background: #14532d;
+    border-color: #22c55e;
+    color: #bbf7d0;
+}
+
+html.dark .gestion-pacientes .reactivate-btn:hover { background: #166534; color: #dcfce7; }
+
+.gestion-pacientes .filter-control { position: relative; }
+.gestion-pacientes .filter-menu {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    z-index: 1100;
+    display: grid;
+    gap: 7px;
+    min-width: 220px;
+    padding: 12px;
+    border: 1px solid #dbe3ef;
+    border-radius: 10px;
+    background: #fff;
+    box-shadow: 0 12px 28px rgb(15 23 42 / .16);
+}
+
+.gestion-pacientes .filter-menu label {
+    color: #475569;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.gestion-pacientes .filter-menu select {
+    width: 100%;
+    padding: 9px 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 7px;
+    background: #f8fafc;
+    color: #1e293b;
+    font: inherit;
+    font-size: 13px;
+}
+
+html.dark .gestion-pacientes .context-menu,
+html.dark .gestion-pacientes .filter-menu {
+    background: #1e293b;
+    border-color: #475569;
+    box-shadow: 0 16px 34px rgb(0 0 0 / .42);
+}
+
+html.dark .gestion-pacientes .context-menu button { color: #e2e8f0; }
+html.dark .gestion-pacientes .context-menu button:hover { background: #334155; }
+html.dark .gestion-pacientes .filter-menu label { color: #cbd5e1; }
+html.dark .gestion-pacientes .filter-menu select {
+    background: #0f172a;
+    border-color: #475569;
+    color: #e2e8f0;
+}
+
+@media (max-width: 767.98px) {
+    .gestion-pacientes .filter-control { flex: 1; }
+    .gestion-pacientes .filter-control .filter-btn { width: 100%; }
+}
+
+@media (min-width: 768px) {
+    .gestion-pacientes .patients-table-scroll th:nth-child(2),
+    .gestion-pacientes .patients-table-scroll td[data-label="RUT"] {
+        min-width: 126px;
+        white-space: nowrap;
+    }
+
+    .gestion-pacientes .patients-table-scroll td:not(:first-child) {
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    .gestion-pacientes .patients-table-scroll td:not(:first-child) .row-actions {
+        justify-content: center;
+        width: 100%;
+    }
+
+    .gestion-pacientes .patients-table-scroll td[data-label="Diagnóstico"] .badge {
+        max-width: 100%;
+        white-space: normal;
+        overflow-wrap: anywhere;
+        line-height: 1.2;
+        font-size: clamp(10px, 0.9vw, 13px);
+    }
+}
+
+.gestion-pacientes .ultima-receta-modal {
+    width: min(620px, calc(100vw - 32px));
+    overflow: hidden;
+}
+
+.gestion-pacientes .ultima-receta-modal .modal-header p {
+    margin: 4px 0 0;
+    color: #64748b;
+    font-size: 13px;
+}
+
+.gestion-pacientes .ultima-receta-contenido,
+.gestion-pacientes .ultima-receta-vacia {
+    padding: 24px;
+}
+
+.gestion-pacientes .ultima-receta-fecha {
+    margin: 0 0 18px;
+    color: #2563eb;
+    font-weight: 700;
+}
+
+.gestion-pacientes .ultima-receta-contenido dl {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+    margin: 0;
+}
+
+.gestion-pacientes .ultima-receta-contenido dl div {
+    padding: 12px;
+    border: 1px solid #dbe3ef;
+    border-radius: 8px;
+}
+
+.gestion-pacientes .ultima-receta-contenido dt {
+    color: #64748b;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.gestion-pacientes .ultima-receta-contenido dd {
+    margin: 5px 0 0;
+    color: #1e293b;
+    font-weight: 600;
+}
+
+.gestion-pacientes .ultima-receta-valores {
+    margin-top: 16px;
+    padding: 12px;
+    border-radius: 8px;
+    background: #f1f5f9;
+}
+
+.gestion-pacientes .ultima-receta-valores p { margin: 5px 0; color: #334155; font-size: 13px; }
+.gestion-pacientes .ultima-receta-valores strong { color: #1d4ed8; }
+.gestion-pacientes .ultima-receta-vacia { color: #64748b; text-align: center; }
+.gestion-pacientes .ultima-receta-vacia i { display: block; margin-bottom: 10px; color: #2563eb; font-size: 30px; }
+
+html.dark .gestion-pacientes .ultima-receta-modal { background: #1e293b; border-color: #334155; }
+html.dark .gestion-pacientes .ultima-receta-modal .modal-header { border-color: #334155; }
+html.dark .gestion-pacientes .ultima-receta-modal .modal-header h2,
+html.dark .gestion-pacientes .ultima-receta-contenido dd { color: #f8fafc; }
+html.dark .gestion-pacientes .ultima-receta-modal .modal-header button {
+    color: #e2e8f0;
+    border-radius: 6px;
+}
+html.dark .gestion-pacientes .ultima-receta-modal .modal-header button:hover {
+    background: #334155;
+    color: #93c5fd;
+}
+html.dark .gestion-pacientes .ultima-receta-modal .modal-header p,
+html.dark .gestion-pacientes .ultima-receta-contenido dt,
+html.dark .gestion-pacientes .ultima-receta-vacia { color: #94a3b8; }
+html.dark .gestion-pacientes .ultima-receta-contenido dl div { border-color: #334155; background: #172033; }
+html.dark .gestion-pacientes .ultima-receta-valores { background: #172033; }
+html.dark .gestion-pacientes .ultima-receta-valores p { color: #cbd5e1; }
+html.dark .gestion-pacientes .ultima-receta-valores strong,
+html.dark .gestion-pacientes .ultima-receta-fecha,
+html.dark .gestion-pacientes .ultima-receta-vacia i { color: #60a5fa; }
+
+@media (max-width: 560px) {
+    .gestion-pacientes .ultima-receta-contenido dl { grid-template-columns: 1fr; }
+}
+
+html.dark .gestion-pacientes .menu-btn {
+    background: #334155;
+    color: #f8fafc;
+}
+
+html.dark .gestion-pacientes .menu-btn:hover { background: #475569; }
+
+html.dark .gestion-pacientes .tab:not(.active) {
+    background: #334155;
+    color: #e2e8f0;
+}
+
+html.dark .gestion-pacientes .pagination-buttons button:disabled {
+    background: #475569;
+    color: #cbd5e1;
+}
+
+html.dark .gestion-pacientes tbody tr:hover {
+    background: #27364b;
+}
+
+html.dark .gestion-pacientes .filter-btn,
+html.dark .gestion-pacientes .export-btn {
+    background: #1e293b;
+    border-color: #475569;
+    color: #e2e8f0;
+}
+
+html.dark .gestion-pacientes .filter-btn:hover,
+html.dark .gestion-pacientes .export-btn:hover {
+    background: #334155;
+    color: #bfdbfe;
+}
+
+@media (max-width: 800px) {
+    html.dark .gestion-pacientes .patients-table-scroll .patient-row {
+        background: #1e293b;
+        border-color: #334155;
+    }
+
+    html.dark .gestion-pacientes .patients-table-scroll td {
+        border-bottom-color: #334155;
+    }
+}
+
+/* El listado también cambia a tarjetas según el ancho del panel, no sólo del viewport. */
+@container (max-width: 800px) {
+    html.dark .gestion-pacientes .patients-table-scroll .patient-row {
+        background: #1e293b;
+        border-color: #334155;
+    }
+
+    html.dark .gestion-pacientes .patients-table-scroll td {
+        color: #e2e8f0;
+        border-bottom-color: #334155;
+    }
+
+    html.dark .gestion-pacientes .patients-table-scroll td::before,
+    html.dark .gestion-pacientes .patients-table-scroll .patient small {
+        color: #94a3b8;
+    }
+}
+
+@container (max-width: 430px) {
+    .gestion-pacientes .patients-container { padding: 14px; }
+
+    .gestion-pacientes .patients-table-scroll .patient-row {
+        box-sizing: border-box;
+        padding: 12px;
+    }
+
+    .gestion-pacientes .patients-table-scroll td {
+        grid-template-columns: minmax(88px, 38%) minmax(0, 1fr);
+        gap: 8px;
+    }
+
+    .gestion-pacientes .patients-table-scroll td.patient {
+        grid-template-columns: minmax(88px, 38%) 44px minmax(0, 1fr);
+        gap: 8px;
+    }
+
+    .gestion-pacientes .patients-table-scroll .patient img {
+        width: 44px;
+        height: 44px;
+    }
+
+    .gestion-pacientes .patients-table-scroll .row-actions {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 40px;
+        gap: 8px;
+        min-width: 0;
+    }
+
+    .gestion-pacientes .patients-table-scroll .recipe-btn {
+        min-width: 0;
+        padding: 10px 8px;
+        font-size: 12px;
+        white-space: nowrap;
+    }
+
+    .gestion-pacientes .filter-menu {
+        left: 0;
+        right: auto;
+        min-width: min(220px, calc(100cqw - 28px));
+    }
 }
