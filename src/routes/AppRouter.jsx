@@ -2,6 +2,7 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import Login from "../pages/Login/Login";
 import Dashboard from "../pages/Dashboard/Dashboard";
 import Recetas from "../pages/Recetas/Recetas";
+import HistorialRecetas from "../pages/Recetas/HistorialRecetas";
 import MainLayout from "../layout/MainLayout";
 import HomeLayout from "../layout/HomeLayout";
 import Home from "../pages/Home/Home";
@@ -39,6 +40,9 @@ export default function AppRouter() {
           <Route path="/paciente/:patientRut" element={<NuevoPaciente />} />
           <Route path="/gestionPacientes" element={<GestionPacientes />} />
           <Route path="/recetas" element={<Recetas />} />
+          <Route path="/recetas/nueva" element={<Recetas />} />
+          <Route path="/recetas/editar/:recetaId" element={<Recetas />} />
+          <Route path="/recetas/historial/:patientRut" element={<HistorialRecetas />} />
           <Route path="/citas" element={<GestionCitas />} />
           <Route path="/gestion-administrativa/contrasenas" element={<GestionContrasenas />} />
           <Route path="/gestion-administrativa/:resource" element={<GestionAdministrativa />} />

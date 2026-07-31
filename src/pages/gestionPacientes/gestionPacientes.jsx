@@ -1,16 +1,36 @@
+import { useState } from 'react';
 import { useGestionPacientes } from './useGestionPacientes';
 import { useNavigate } from 'react-router-dom';
 import './gestionPacientes.css';
 
 export default function GestionPacientes() {
   const navigate = useNavigate();
+  const [ultimaReceta, setUltimaReceta] = useState(null);
+  const [mostrarOrden, setMostrarOrden] = useState(false);
   // Extraemos toda la lógica y estados de nuestro Custom Hook
   const {
-    patients, currentPage, setCurrentPage,
-    filterTab, setFilterTab, isModalOpen, setIsModalOpen, formData, setFormData,
+    patients, citasHoy, currentPage, setCurrentPage,
+    filterTab, setFilterTab, sortOption, setSortOption, isModalOpen, setIsModalOpen, formData, setFormData,
     contextMenu, editingIndex, filteredPatients, currentPatients, totalPages,
-    startRecord, endRecord, handleOpenModal, handleFormSubmit, handleDeletePatient, handleContextMenu
+    startRecord, endRecord, handleOpenModal, handleFormSubmit, handleDeletePatient, handleReactivatePatient, handleContextMenu
   } = useGestionPacientes();
+
+  const abrirUltimaReceta = (paciente) => {
+    if (!paciente) return;
+    fetch('/data/recetas.json')
+      .then((respuesta) => respuesta.ok ? respuesta.json() : [])
+      .then((recetasBase) => {
+        let recetasGuardadas = [];
+        try { recetasGuardadas = JSON.parse(localStorage.getItem('visium.recetas') || '[]'); } catch { recetasGuardadas = []; }
+        const recetasPorId = new Map(recetasBase.map((receta) => [receta.id, receta]));
+        recetasGuardadas.forEach((receta) => recetasPorId.set(receta.id, receta));
+        const receta = [...recetasPorId.values()]
+          .filter((item) => item.pacienteRut === paciente.rut)
+          .sort((a, b) => String(b.fecha).localeCompare(String(a.fecha)))[0] || null;
+        setUltimaReceta({ paciente, receta });
+      })
+      .catch(() => setUltimaReceta({ paciente, receta: null }));
+  };
 
   return (
     <main className="main gestion-pacientes">
@@ -25,24 +45,17 @@ export default function GestionPacientes() {
 
         <div className="cards">
           <div className="card">
-            <div className="card-icon blue"><i className="fa-solid fa-users"></i></div>
+            <div className="card-icon blue"><i className="bi bi-people-fill" aria-hidden="true"></i></div>
             <div className="card-info">
-              <span>Total Pacientes</span>
-              <h2>{patients.length}</h2>
+              <span>{filterTab === "active" ? "Pacientes activos" : "Total Pacientes"}</span>
+              <h2>{filteredPatients.length}</h2>
             </div>
           </div>
           <div className="card">
-            <div className="card-icon green"><i className="fa-regular fa-calendar-check"></i></div>
+            <div className="card-icon green"><i className="bi bi-calendar2-check-fill" aria-hidden="true"></i></div>
             <div className="card-info">
               <span>Citas Hoy</span>
-              <h2>24</h2>
-            </div>
-          </div>
-          <div className="card">
-            <div className="card-icon orange"><i className="fa-solid fa-stethoscope"></i></div>
-            <div className="card-info">
-              <span>Procedimientos</span>
-              <h2>12</h2>
+              <h2>{citasHoy}</h2>
             </div>
           </div>
         </div>
@@ -65,7 +78,22 @@ export default function GestionPacientes() {
               </div>
             </div>
             <div className="patients-actions">
-              <button className="filter-btn"><i className="fa-solid fa-filter"></i> Filtrar</button>
+              <div className="filter-control">
+                <button className="filter-btn" type="button" onClick={() => setMostrarOrden((visible) => !visible)} aria-expanded={mostrarOrden}>
+                  <i className="bi bi-funnel"></i> Filtrar
+                </button>
+                {mostrarOrden && <div className="filter-menu">
+                  <label htmlFor="orden-pacientes">Ordenar por</label>
+                  <select id="orden-pacientes" value={sortOption} onChange={(event) => { setSortOption(event.target.value); setCurrentPage(1); }}>
+                    <option value="nombre-asc">Nombre: A a Z</option>
+                    <option value="nombre-desc">Nombre: Z a A</option>
+                    <option value="apellido-asc">Apellido: A a Z</option>
+                    <option value="apellido-desc">Apellido: Z a A</option>
+                    <option value="edad-asc">Edad: menor a mayor</option>
+                    <option value="edad-desc">Edad: mayor a menor</option>
+                  </select>
+                </div>}
+              </div>
               <button className="export-btn"><i className="fa-solid fa-file-export"></i> Exportar</button>
             </div>
           </div>
@@ -100,12 +128,18 @@ export default function GestionPacientes() {
                       </td>
                       <td data-label="Acciones">
                         <div className="row-actions">
-                          <button className="recipe-btn" onClick={() => navigate(`/paciente/${p.rut}`)}>
-                            <i className="bi bi-file-earmark-medical"></i> Crear Receta
-                          </button>
-                          <button className="menu-btn action-btn" onClick={(e) => handleContextMenu(e, globalIndex)} aria-label="Más opciones">
-                            <i className="bi bi-three-dots-vertical"></i>
-                          </button>
+                          {p.estado === "Desactivado" ? (
+                            <button className="reactivate-btn" onClick={() => handleReactivatePatient(globalIndex)}>
+                              <i className="bi bi-arrow-clockwise"></i> Reactivar
+                            </button>
+                          ) : <>
+                            <button className="recipe-btn" onClick={() => navigate(`/paciente/${p.rut}`)}>
+                              <i className="bi bi-file-earmark-medical"></i> Crear Receta
+                            </button>
+                            <button className="menu-btn action-btn" onClick={(e) => handleContextMenu(e, globalIndex)} aria-label="Más opciones">
+                              <i className="bi bi-three-dots-vertical"></i>
+                            </button>
+                          </>}
                         </div>
                       </td>
                     </tr>
@@ -136,8 +170,8 @@ export default function GestionPacientes() {
       {/* Menú Contextual */}
       {contextMenu.visible && (
         <div className="context-menu show" style={{ left: contextMenu.x, top: contextMenu.y }}>
-          <button onClick={() => alert("Prueba: aquí se mostrará la última ficha del paciente.")}><i className="bi bi-file-earmark-medical"></i> Ver última ficha</button>
-          <button onClick={() => alert("Prueba: aquí se mostrará el historial de fichas del paciente.")}><i className="bi bi-folder2-open"></i> Ver fichas</button>
+          <button onClick={() => abrirUltimaReceta(patients[contextMenu.patientIndex])}><i className="bi bi-file-earmark-medical"></i> Ver última receta</button>
+          <button onClick={() => navigate(`/recetas/historial/${patients[contextMenu.patientIndex]?.rut}`)}><i className="bi bi-folder2-open"></i> Ver recetas</button>
           <button onClick={() => handleOpenModal(contextMenu.patientIndex)}><i className="bi bi-person-gear"></i> Editar datos personales</button>
           <button onClick={() => handleDeletePatient(contextMenu.patientIndex)}><i className="bi bi-trash3"></i> Eliminar</button>
         </div>
@@ -188,6 +222,31 @@ export default function GestionPacientes() {
               </div>
             </form>
           </div>
+        </div>
+      )}
+
+      {ultimaReceta && (
+        <div className="modal show" onClick={() => setUltimaReceta(null)}>
+          <section className="modal-content ultima-receta-modal" role="dialog" aria-modal="true" aria-labelledby="ultima-receta-titulo" onClick={(evento) => evento.stopPropagation()}>
+            <div className="modal-header">
+              <div><h2 id="ultima-receta-titulo">Última receta</h2><p>{ultimaReceta.paciente.nombre} · RUT: {ultimaReceta.paciente.rut}</p></div>
+              <button type="button" onClick={() => setUltimaReceta(null)} aria-label="Cerrar">&times;</button>
+            </div>
+            {ultimaReceta.receta ? <div className="ultima-receta-contenido">
+              <p className="ultima-receta-fecha">{new Intl.DateTimeFormat('es-CL', { day: '2-digit', month: 'long', year: 'numeric' }).format(new Date(`${ultimaReceta.receta.fecha}T00:00:00`))}</p>
+              <dl>
+                <div><dt>Diagnóstico</dt><dd>{ultimaReceta.receta.diagnostico || 'Sin diagnóstico'}</dd></div>
+                <div><dt>Graduación</dt><dd>{ultimaReceta.receta.tipoVision === 'Ambos' ? 'Lejos/Cerca' : ultimaReceta.receta.tipoVision || 'Lejos'}</dd></div>
+                <div><dt>Material</dt><dd>{ultimaReceta.receta.materialSugerido || 'No especificado'}</dd></div>
+                <div><dt>Indicaciones</dt><dd>{ultimaReceta.receta.indicaciones || 'Sin indicaciones'}</dd></div>
+              </dl>
+              <div className="ultima-receta-valores">
+                <p><strong>OD</strong> SPH {ultimaReceta.receta.ojoDerecho?.esfera || '—'} · CYL {ultimaReceta.receta.ojoDerecho?.cilindro || '—'} · Eje {ultimaReceta.receta.ojoDerecho?.eje || '—'} · ADD {ultimaReceta.receta.ojoDerecho?.adicion || '—'}</p>
+                <p><strong>OI</strong> SPH {ultimaReceta.receta.ojoIzquierdo?.esfera || '—'} · CYL {ultimaReceta.receta.ojoIzquierdo?.cilindro || '—'} · Eje {ultimaReceta.receta.ojoIzquierdo?.eje || '—'} · ADD {ultimaReceta.receta.ojoIzquierdo?.adicion || '—'}</p>
+                <p><strong>DP</strong> Lejos {ultimaReceta.receta.distanciaPupilar?.lejos || '—'} mm · Cerca {ultimaReceta.receta.distanciaPupilar?.cerca || '—'} mm</p>
+              </div>
+            </div> : <div className="ultima-receta-vacia"><i className="bi bi-file-earmark-text" /><p>Este paciente aún no tiene recetas registradas.</p></div>}
+          </section>
         </div>
       )}
     </main>

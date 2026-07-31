@@ -1,12 +1,75 @@
 [
   {
+    "id": "R-0999",
+    "pacienteRut": "15.234.567-8",
+    "fecha": "2025-12-12",
+    "tipoVision": "Lejos",
+    "ojoDerecho": {
+      "esfera": "-1.00",
+      "cilindro": "-0.50",
+      "eje": "90",
+      "adicion": "+1.25"
+    },
+    "ojoIzquierdo": {
+      "esfera": "-0.75",
+      "cilindro": "-0.25",
+      "eje": "85",
+      "adicion": "+1.25"
+    },
+    "distanciaPupilar": {
+      "lejos": "63",
+      "cerca": "60"
+    },
+    "materialSugerido": "CR-39 con Antirreflejo",
+    "diagnostico": "Glaucoma en control",
+    "indicaciones": "Uso permanente. Mantener controles de presión intraocular según indicación médica."
+  },
+  {
+    "id": "R-1000",
+    "pacienteRut": "15.234.567-8",
+    "fecha": "2026-03-18",
+    "tipoVision": "Lejos/Cerca",
+    "ojoDerecho": {
+      "esfera": "-1.25",
+      "cilindro": "-0.50",
+      "eje": "90",
+      "adicion": "+1.50"
+    },
+    "ojoIzquierdo": {
+      "esfera": "-1.00",
+      "cilindro": "-0.25",
+      "eje": "85",
+      "adicion": "+1.50"
+    },
+    "distanciaPupilar": {
+      "lejos": "63",
+      "cerca": "60"
+    },
+    "materialSugerido": "Policarbonato con filtro UV",
+    "diagnostico": "Glaucoma avanzado",
+    "indicaciones": "Usar lentes para lejos y lectura. Asistir al control oftalmológico trimestral."
+  },
+  {
     "id": "R-1001",
     "pacienteRut": "15.234.567-8",
     "fecha": "2026-06-20",
     "tipoVision": "Lejos",
-    "ojoDerecho": { "esfera": "-1.25", "cilindro": "-0.50", "eje": "90", "adicion": "+1.50" },
-    "ojoIzquierdo": { "esfera": "-1.00", "cilindro": "-0.25", "eje": "85", "adicion": "+1.50" },
-    "distanciaPupilar": { "lejos": "63", "cerca": "60" },
+    "ojoDerecho": {
+      "esfera": "-1.25",
+      "cilindro": "-0.50",
+      "eje": "90",
+      "adicion": "+1.50"
+    },
+    "ojoIzquierdo": {
+      "esfera": "-1.00",
+      "cilindro": "-0.25",
+      "eje": "85",
+      "adicion": "+1.50"
+    },
+    "distanciaPupilar": {
+      "lejos": "63",
+      "cerca": "60"
+    },
     "materialSugerido": "Policarbonato con Antirreflejo",
     "diagnostico": "Glaucoma avanzado",
     "indicaciones": "Uso permanente y control de presión intraocular en tres meses."
@@ -15,10 +78,23 @@
     "id": "R-1002",
     "pacienteRut": "12.345.678-9",
     "fecha": "2026-06-19",
-    "tipoVision": "Lejos",
-    "ojoDerecho": { "esfera": "+0.50", "cilindro": "-0.25", "eje": "100", "adicion": "+2.00" },
-    "ojoIzquierdo": { "esfera": "+0.25", "cilindro": "0.00", "eje": "0", "adicion": "+2.00" },
-    "distanciaPupilar": { "lejos": "64", "cerca": "61" },
+    "tipoVision": "Cerca",
+    "ojoDerecho": {
+      "esfera": "+0.50",
+      "cilindro": "-0.25",
+      "eje": "100",
+      "adicion": "+2.00"
+    },
+    "ojoIzquierdo": {
+      "esfera": "+0.25",
+      "cilindro": "0.00",
+      "eje": "0",
+      "adicion": "+2.00"
+    },
+    "distanciaPupilar": {
+      "lejos": "64",
+      "cerca": "61"
+    },
     "materialSugerido": "CR-39",
     "diagnostico": "Control post-operatorio de catarata",
     "indicaciones": "Uso para lectura y control post-operatorio según indicación médica."
@@ -27,10 +103,23 @@
     "id": "R-1003",
     "pacienteRut": "18.456.789-1",
     "fecha": "2026-06-17",
-    "tipoVision": "Lejos",
-    "ojoDerecho": { "esfera": "-2.00", "cilindro": "-0.75", "eje": "80", "adicion": "0.00" },
-    "ojoIzquierdo": { "esfera": "-1.75", "cilindro": "-0.50", "eje": "95", "adicion": "0.00" },
-    "distanciaPupilar": { "lejos": "61", "cerca": "58" },
+    "tipoVision": "Lejos/Cerca",
+    "ojoDerecho": {
+      "esfera": "-2.00",
+      "cilindro": "-0.75",
+      "eje": "80",
+      "adicion": "0.00"
+    },
+    "ojoIzquierdo": {
+      "esfera": "-1.75",
+      "cilindro": "-0.50",
+      "eje": "95",
+      "adicion": "0.00"
+    },
+    "distanciaPupilar": {
+      "lejos": "61",
+      "cerca": "58"
+    },
     "materialSugerido": "Alto Índice",
     "diagnostico": "Miopía progresiva",
     "indicaciones": "Usar de forma permanente y realizar control anual."
@@ -40,9 +129,22 @@
     "pacienteRut": "9.876.543-2",
     "fecha": "2026-06-16",
     "tipoVision": "Lejos",
-    "ojoDerecho": { "esfera": "+1.50", "cilindro": "-1.00", "eje": "110", "adicion": "+2.50" },
-    "ojoIzquierdo": { "esfera": "+1.00", "cilindro": "-0.75", "eje": "105", "adicion": "+2.50" },
-    "distanciaPupilar": { "lejos": "65", "cerca": "62" },
+    "ojoDerecho": {
+      "esfera": "+1.50",
+      "cilindro": "-1.00",
+      "eje": "110",
+      "adicion": "+2.50"
+    },
+    "ojoIzquierdo": {
+      "esfera": "+1.00",
+      "cilindro": "-0.75",
+      "eje": "105",
+      "adicion": "+2.50"
+    },
+    "distanciaPupilar": {
+      "lejos": "65",
+      "cerca": "62"
+    },
     "materialSugerido": "Policarbonato con Antirreflejo",
     "diagnostico": "Catarata en ojo derecho",
     "indicaciones": "Usar según tolerancia mientras se coordina evaluación quirúrgica."

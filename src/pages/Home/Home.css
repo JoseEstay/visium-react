@@ -162,6 +162,25 @@
 
 }
 
+/* Tema oscuro de la página pública. */
+html.dark .home-page { background: #0f172a; color: #e2e8f0; }
+html.dark .home-page .text-muted { color: #aebed3 !important; }
+html.dark .home-page .hero-title,
+html.dark .home-page .section-title,
+html.dark .home-page .text-brand-primary { color: #60a5fa !important; }
+html.dark .home-page .badge-brand { background: #172554; color: #bfdbfe; }
+html.dark .home-page .border-top { border-color: #334155 !important; }
+html.dark .home-page .border-divider { border-color: #334155; }
+html.dark .home-page .bg-light-section,
+html.dark .home-page .section-flujo { background: #172033 !important; }
+html.dark .home-page .custom-card { background: #1e293b; border-color: #334155; box-shadow: 0 10px 22px rgba(0, 0, 0, .18); }
+html.dark .home-page .custom-card .card-title { color: #dbeafe; }
+html.dark .home-page .custom-card:hover { box-shadow: 0 16px 28px rgba(0, 0, 0, .3); }
+html.dark .home-page .step-number { background: #334155; color: #cbd5e1; }
+html.dark .home-page .step-number.active { background: #2563eb; color: #fff; }
+html.dark .home-page .btn-brand-outline { background: transparent; color: #93c5fd; border-color: #60a5fa; }
+html.dark .home-page .btn-brand-outline:hover { background: #172554; color: #dbeafe; }
+
 
 
 /* RESPONSIVE */

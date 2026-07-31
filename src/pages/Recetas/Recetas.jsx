@@ -1,10 +1,51 @@
 import './Recetas.css'; // Asegúrate de que el archivo CSS esté en la misma carpeta
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
+
+const FECHA_REFERENCIA = new Date('2026-07-31T00:00:00');
+const normalizarTipoVision = (tipoVision) => tipoVision === 'Ambos' ? 'Lejos/Cerca' : (tipoVision || 'Lejos');
 
 const RecetaPage = () => {
+    const { recetaId } = useParams();
+    const location = useLocation();
+    const navigate = useNavigate();
+    const { pathname } = location;
+    const esNuevaReceta = pathname === '/recetas/nueva';
+    const pacienteNuevaReceta = location.state?.paciente;
+    const [receta, setReceta] = useState(null);
+    const [paciente, setPaciente] = useState(null);
+    const [tipoVision, setTipoVision] = useState('Lejos');
+
     useEffect(() => {
         window.scrollTo({ top: 0, left: 0, behavior: "auto" });
-    }, []);
+        if (esNuevaReceta) {
+            if (!pacienteNuevaReceta?.rut || !pacienteNuevaReceta?.nombre) navigate('/paciente', { replace: true });
+            return;
+        }
+        Promise.all([fetch('/data/recetas.json'), fetch('/data/pacientes.json')])
+            .then(async ([recetasResponse, pacientesResponse]) => {
+                const [recetas, pacientes] = await Promise.all([recetasResponse.json(), pacientesResponse.json()]);
+                const recetaInicial = recetaId ? recetas.find((item) => item.id === recetaId) : null;
+                const pacienteAsociado = pacientes.find((item) => item.rut === recetaInicial?.pacienteRut) || null;
+                if (!recetaInicial || !pacienteAsociado) {
+                    navigate('/paciente', { replace: true });
+                    return;
+                }
+                setReceta(recetaInicial);
+                setTipoVision(normalizarTipoVision(recetaInicial?.tipoVision));
+                setPaciente(pacienteAsociado);
+            })
+            .catch((error) => console.error('Error cargando receta', error));
+    }, [esNuevaReceta, recetaId, pacienteNuevaReceta?.nombre, pacienteNuevaReceta?.rut, navigate]);
+
+    const pacienteMostrado = esNuevaReceta ? location.state?.paciente : paciente;
+    const recetaAnterior = esNuevaReceta ? location.state?.recetaAnterior : receta;
+    const edad = pacienteMostrado?.fechaNacimiento
+        ? Math.floor((FECHA_REFERENCIA - new Date(`${pacienteMostrado.fechaNacimiento}T00:00:00`)) / 31557600000)
+        : '';
+    const fechaReceta = recetaAnterior?.fecha
+        ? new Intl.DateTimeFormat('es-CL', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(`${recetaAnterior.fecha}T00:00:00`))
+        : '';
 
     return (
         <div className="layout-unificado">
@@ -19,11 +60,16 @@ const RecetaPage = () => {
 
                 {/* BREADCRUMB */}
                 <div className="breadcrumb-bar">
-                    Pacientes / ID: 12455901-K / <span>Nueva Receta</span>
+                    <span>Paciente / RUT: {pacienteMostrado?.rut || (esNuevaReceta ? 'Sin paciente asociado' : 'Cargando...')} / <span>Nueva Receta</span></span>
+                    {pacienteMostrado?.rut && (
+                        <Link className="receta-volver-paciente" to={`/paciente/${pacienteMostrado.rut}`}>
+                            <i className="bi bi-person-vcard" /> Volver a datos del paciente
+                        </Link>
+                    )}
                 </div>
 
                 {/* AREA PRINCIPAL */}
-                <main className="receta-page">
+                <main className="receta-page" key={receta?.id || 'cargando'}>
 
                     {/* TARJETA PACIENTE */}
                     <section className="paciente-card mb-4">
@@ -32,21 +78,21 @@ const RecetaPage = () => {
                                 <i className="bi bi-person-circle"></i>
                             </div>
                             <div className="datos-paciente">
-                                <h2>Ricardo Mendoza</h2>
-                                <p>ID: 12455901-K • 68 Años</p>
+                                <h2>{pacienteMostrado?.nombre || (esNuevaReceta ? 'Nuevo paciente' : 'Cargando paciente...')}</h2>
+                                <p>ID: {pacienteMostrado?.rut || '—'}{edad ? ` • ${edad} Años` : ''}</p>
                             </div>
                         </div>
                         <div className="diagnostico">
                             <span>Diagnóstico Principal</span>
-                            <h4>Glaucoma de Ángulo Abierto / Catarata Senil OD</h4>
+                            <h4>{recetaAnterior?.diagnostico || '—'}</h4>
                         </div>
                         <div className="ultima-visita">
                             <span>Última Visita</span>
-                            <h4>15 Oct 2025</h4>
+                            <h4>{recetaAnterior ? fechaReceta : '—'}</h4>
                         </div>
-                        <div className="historial">
-                            <button type="button">Ver Historial Completo</button>
-                        </div>
+                        {recetaAnterior && pacienteMostrado?.rut && <div className="historial">
+                            <Link to={`/recetas/historial/${pacienteMostrado.rut}`}>Ver historial recetas</Link>
+                        </div>}
                     </section>
 
                     {/* GRID RECETA */}
@@ -58,10 +104,13 @@ const RecetaPage = () => {
                             <div className="receta-card">
                                 <div className="titulo-receta">
                                     <h2><i className="fa-solid fa-glasses text-primary"></i> Receta Óptica (Refracción)</h2>
-                                    <div className="botones-receta">
-                                        <button className="activo" type="button">Lejos</button>
-                                        <button type="button">Cerca</button>
-                                    </div>
+                                    <label className="tipo-vision-control">Graduación
+                                        <select value={tipoVision} onChange={(event) => setTipoVision(event.target.value)}>
+                                            <option value="Lejos">Lejos</option>
+                                            <option value="Cerca">Cerca</option>
+                                            <option value="Lejos/Cerca">Lejos/Cerca</option>
+                                        </select>
+                                    </label>
                                 </div>
 
                                 <table className="tabla-receta">
@@ -77,32 +126,33 @@ const RecetaPage = () => {
                                     <tbody>
                                         <tr>
                                             <td>OD (Ojo Derecho)</td>
-                                            <td><input type="text" placeholder="-" /></td>
-                                            <td><input type="text" placeholder="-0" /></td>
-                                            <td><input type="text" placeholder="." /></td>
-                                            <td><input type="text" placeholder="+" /></td>
+                                            <td><input type="text" defaultValue={receta?.ojoDerecho?.esfera || ''} placeholder="-" /></td>
+                                            <td><input type="text" defaultValue={receta?.ojoDerecho?.cilindro || ''} placeholder="-0" /></td>
+                                            <td><input type="text" defaultValue={receta?.ojoDerecho?.eje || ''} placeholder="." /></td>
+                                            <td><input type="text" defaultValue={receta?.ojoDerecho?.adicion || ''} placeholder="+" /></td>
                                         </tr>
                                         <tr>
                                             <td>OI (Ojo Izquierdo)</td>
-                                            <td><input type="text" placeholder="-" /></td>
-                                            <td><input type="text" placeholder="-0" /></td>
-                                            <td><input type="text" placeholder="." /></td>
-                                            <td><input type="text" placeholder="+" /></td>
+                                            <td><input type="text" defaultValue={receta?.ojoIzquierdo?.esfera || ''} placeholder="-" /></td>
+                                            <td><input type="text" defaultValue={receta?.ojoIzquierdo?.cilindro || ''} placeholder="-0" /></td>
+                                            <td><input type="text" defaultValue={receta?.ojoIzquierdo?.eje || ''} placeholder="." /></td>
+                                            <td><input type="text" defaultValue={receta?.ojoIzquierdo?.adicion || ''} placeholder="+" /></td>
                                         </tr>
                                     </tbody>
                                 </table>
 
-                                <div className="fila-receta pb-2 border-bottom border-light">
+                                <div className="fila-receta pb-2">
                                     <div className="grupo">
                                         <label>Distancia Pupilar (DP)</label>
                                         <div className="input-duo">
-                                            <input type="text" placeholder="Lejos (mm)" />
-                                            <input type="text" placeholder="Cerca (mm)" />
+                                            <input type="text" defaultValue={receta?.distanciaPupilar?.lejos || ''} placeholder="Lejos (mm)" />
+                                            <input type="text" defaultValue={receta?.distanciaPupilar?.cerca || ''} placeholder="Cerca (mm)" />
                                         </div>
                                     </div>
                                     <div className="grupo">
                                         <label>Material Sugerido</label>
-                                        <select defaultValue="Policarbonato con Antirreflejo">
+                                        <select defaultValue={receta?.materialSugerido || ''}>
+                                            <option value="" disabled>Seleccionar material...</option>
                                             <option value="Policarbonato con Antirreflejo">Policarbonato con Antirreflejo</option>
                                             <option value="CR-39">CR-39</option>
                                             <option value="Alto Índice">Alto Índice</option>
@@ -118,16 +168,16 @@ const RecetaPage = () => {
                                     <input
                                         id="diagnostico-receta"
                                         type="text"
+                                        defaultValue={receta?.diagnostico || ''}
                                         placeholder="Ej. Miopía, glaucoma, catarata..."
                                     />
-                                    <label className="d-flex align-items-center gap-2 text-dark">
-                                        <i className="fa-solid fa-bars-staggered text-muted"></i> Indicaciones Clínicas y Observaciones
-                                    </label>
+                                    <label>Indicaciones Clínicas y Observaciones</label>
                                     <textarea
                                         rows="4"
-                                        className="form-control bg-light text-muted mt-2 border-light"
+                                        className="form-control mt-2"
+                                        defaultValue={receta?.indicaciones || ''}
                                         placeholder="Ej. Uso permanente para lectura, evitar exposición prolongada a pantallas sin filtros..."
-                                    ></textarea>
+                                    />
                                 </div>
                             </div>
                         </div>
@@ -136,9 +186,6 @@ const RecetaPage = () => {
 
                     {/* FOOTER / ACCIONES */}
                     <footer className="acciones-footer">
-                        <a href="#volver-expediente" className="btn-volver">
-                            <i className="fa-solid fa-arrow-left"></i> Volver al Expediente
-                        </a>
                         <div className="acciones-botones">
                             <button type="button" className="btn-guardar">Guardar Borrador</button>
                             <button type="button" className="btn-imprimir">

@@ -171,7 +171,7 @@
 .icon-btn {
   width: 40px;
   height: 40px;
-  border: none;
+  border: 1px solid transparent;
   background: white;
   cursor: pointer;
   border-radius: 10px;
@@ -185,6 +185,20 @@
 .icon-btn:hover {
   background: #eef5ff;
   color: #0b5ed7;
+  border-color: #0b5ed7;
+}
+
+.theme-toggle-icon {
+  animation: theme-icon-rotate .35s ease-out;
+}
+
+.theme-toggle:hover .theme-toggle-icon {
+  transform: rotate(18deg) scale(1.08);
+}
+
+@keyframes theme-icon-rotate {
+  from { opacity: 0; transform: rotate(-90deg) scale(.6); }
+  to { opacity: 1; transform: rotate(0) scale(1); }
 }
 
 .profile {
@@ -291,10 +305,10 @@ html.dark .icon-btn {
 
 html.dark .icon-btn:hover {
   background: #334155;
-  color: #0b5ed7;
+  color: #fbbf24;
+  border-color: #fbbf24;
 }
 
 html.dark .profile span {
   color: #F8FAFC;
 }
-

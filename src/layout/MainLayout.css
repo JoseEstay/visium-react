@@ -25,6 +25,10 @@
   box-sizing: border-box;
 }
 
+html.dark .content-wrapper {
+  background: #0f172a;
+}
+
 /* ============================================================
    2. COMPUTADORES Y ESCRITORIO (Desde 1024px)
    ============================================================ */

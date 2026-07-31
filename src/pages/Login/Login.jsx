@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import "./Login.css";
 import { Link, useNavigate } from "react-router";
@@ -10,7 +10,14 @@ function Login() {
 
   const [mostrarPassword, setMostrarPassword] = useState(false);
 
+  const [theme, setTheme] = useState(() => localStorage.getItem("theme") || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"));
+
   const navigate = useNavigate();
+
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", theme === "dark");
+    localStorage.setItem("theme", theme);
+  }, [theme]);
 
   const logueado = (e) => {
     e.preventDefault();
@@ -26,7 +33,7 @@ function Login() {
   };
 
   return (
-    <div className="login-page">
+    <div className={`login-page ${theme === "dark" ? "login-dark" : ""}`}>
       <div className="auth-card">
         <div className="row g-0 align-items-stretch">
           {/* PANEL IZQUIERDO */}
@@ -36,7 +43,7 @@ function Login() {
               <Link to="/" className="brand-title">Visium</Link>
 
               <div className="brand-subtitle">
-                Plataforma Integral para Médicos Tratantes
+                Plataforma Integral
               </div>
             </div>
 
@@ -66,13 +73,22 @@ function Login() {
           {/* PANEL DERECHO */}
 
           <div className="col-12 col-lg-7 panel-right">
+            <button
+              type="button"
+              className="login-theme-toggle"
+              onClick={() => setTheme((current) => current === "dark" ? "light" : "dark")}
+              aria-label={theme === "dark" ? "Activar modo claro" : "Activar modo oscuro"}
+              title={theme === "dark" ? "Modo claro" : "Modo oscuro"}
+            >
+              <i className={`bi bi-${theme === "dark" ? "sun-fill" : "moon-stars-fill"}`} />
+            </button>
             <Link to="/" className="logo-row" aria-label="Ir al inicio de Visium">
               <i className="bi bi-eye-fill"></i>
 
               <span>Visium</span>
             </Link>
 
-            <h1 className="form-heading">Portal de Médico Tratante</h1>
+            <h1 className="form-heading">Portal de Médico</h1>
 
             <p className="form-subheading">
               Ingrese sus credenciales para acceder al panel clínico.

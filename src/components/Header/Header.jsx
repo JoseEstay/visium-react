@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 
 function Header() {
     const [seccionActiva, setSeccionActiva] = useState(() => window.location.hash === "#sobre-nosotros" ? "sobre" : "inicio");
+    const [theme, setTheme] = useState(() => localStorage.getItem("theme") || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"));
 
     useEffect(() => {
         const actualizarSeccion = () => {
@@ -21,6 +22,11 @@ function Header() {
             window.removeEventListener("hashchange", actualizarSeccion);
         };
     }, []);
+
+    useEffect(() => {
+        document.documentElement.classList.toggle("dark", theme === "dark");
+        localStorage.setItem("theme", theme);
+    }, [theme]);
 
 
     return (
@@ -146,6 +152,16 @@ function Header() {
                             match-buttons
                             "
                         >
+
+                            <button
+                                type="button"
+                                className="home-theme-toggle"
+                                onClick={() => setTheme((current) => current === "dark" ? "light" : "dark")}
+                                aria-label={theme === "dark" ? "Activar modo claro" : "Activar modo oscuro"}
+                                title={theme === "dark" ? "Modo claro" : "Modo oscuro"}
+                            >
+                                <i className={`bi bi-${theme === "dark" ? "sun-fill" : "moon-stars-fill"}`} />
+                            </button>
 
 
 

@@ -62,3 +62,8 @@
     color: var(--brand-primary) !important;
 
 }
+
+html.dark .footer-custom.bg-white { background: #111c2f !important; border-color: #334155 !important; color: #e2e8f0; }
+html.dark .footer-custom .text-muted,
+html.dark .footer-custom .footer-links a { color: #aebed3 !important; }
+html.dark .footer-custom .border-top { border-color: #334155 !important; }

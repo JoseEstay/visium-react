@@ -93,3 +93,43 @@ a {
 .text-nowrap {
   white-space: nowrap !important;
 }
+
+/* Indicador de foco consistente para campos editables en modo oscuro. */
+html.dark input:not([type="checkbox"]):not([type="radio"]):not([type="button"]):not([type="submit"]):focus,
+html.dark textarea:focus,
+html.dark select:focus {
+  outline: none;
+  border-color: #3b82f6 !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, .25) !important;
+}
+
+/* Base común para todos los campos editables en modo oscuro. */
+html.dark input:not([type="checkbox"]):not([type="radio"]):not([type="button"]):not([type="submit"]):not([type="reset"]):not([type="range"]),
+html.dark textarea,
+html.dark select {
+  background-color: #0f172a !important;
+  border-color: #475569 !important;
+  color: #e2e8f0 !important;
+  caret-color: #93c5fd;
+}
+
+html.dark input:not([type="checkbox"]):not([type="radio"]):not([type="button"]):not([type="submit"]):not([type="reset"]):not([type="range"]):focus,
+html.dark textarea:focus,
+html.dark select:focus {
+  background-color: #0f172a !important;
+  color: #e2e8f0 !important;
+}
+
+html.dark input::placeholder,
+html.dark textarea::placeholder { color: #64748b !important; opacity: 1; }
+
+html.dark select option { background: #0f172a; color: #e2e8f0; }
+
+html.dark input:-webkit-autofill,
+html.dark input:-webkit-autofill:hover,
+html.dark input:-webkit-autofill:focus,
+html.dark textarea:-webkit-autofill {
+  -webkit-text-fill-color: #e2e8f0;
+  -webkit-box-shadow: 0 0 0 1000px #0f172a inset;
+  transition: background-color 9999s ease-out 0s;
+}

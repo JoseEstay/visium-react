@@ -105,12 +105,31 @@
 }
 
 .panel-right {
+    position: relative;
     min-height: 464px;
     display: flex;
     flex-direction: column;
     justify-content: center;
     padding: 31px 63px 29px;
 }
+
+.login-theme-toggle {
+    position: absolute;
+    top: 18px;
+    right: 20px;
+    display: grid;
+    width: 36px;
+    height: 36px;
+    place-items: center;
+    border: 1px solid #cbd5e1;
+    border-radius: 9px;
+    background: #f8fafc;
+    color: #1d4ed8;
+    cursor: pointer;
+    transition: transform .2s ease, background .2s ease, border-color .2s ease, color .2s ease;
+}
+.login-theme-toggle:hover { transform: translateY(-1px) rotate(12deg); border-color: #3b82f6; background: #eff6ff; }
+.login-theme-toggle i { font-size: 1rem; }
 
 .auth-card .panel-right {
     padding: 31px 63px 29px;
@@ -171,7 +190,7 @@
 
 .input-group-custom:focus-within {
     border-color: var(--visium-blue);
-    box-shadow: 0 0 0 3px rgba(6, 74, 168, .12);
+    box-shadow: 0 0 0 3px rgba(6, 74, 168, .18);
 }
 
 .input-group-custom .input-group-text,
@@ -190,6 +209,19 @@
     color: #343c4d;
     font-size: .75rem;
 }
+
+.input-group-custom .form-control:focus,
+.reset-input:focus,
+.contact-message:focus {
+    outline: 0;
+    box-shadow: none;
+}
+.input-group-custom .form-control:focus {
+    background-color: transparent;
+    color: #343c4d;
+}
+.reset-input:focus,
+.contact-message:focus { border-color: var(--visium-blue); box-shadow: 0 0 0 3px rgba(6, 74, 168, .18); }
 
 .input-group-custom .form-control::placeholder {
     color: #7b8495;
@@ -271,6 +303,52 @@
 .bottom-row a:hover { text-decoration: underline; }
 .reset-card{max-width:480px}.reset-input{height:40px;border:1px solid #cbd2df;background:#f4f5f7;font-size:.8rem}.reset-message{margin:0 0 16px;color:#b91c1c;font-size:.78rem}.reset-back{display:block;margin-top:20px;color:var(--visium-blue);font-size:.78rem;text-align:center;text-decoration:none}
 .support-link{color:#4f5869;text-decoration:none}.support-link:hover{color:var(--visium-blue)}.contact-message{min-height:110px;resize:vertical;border:1px solid #cbd2df;background:#f4f5f7;font-size:.8rem}
+
+/* Tema oscuro del acceso. */
+.login-page.login-dark { background: #0b1220; }
+.login-dark .auth-card { background: #1e293b; border-color: #334155; box-shadow: 0 18px 44px rgba(0, 0, 0, .34); }
+.login-dark .panel-left { background-color: #0b3a83; background-image: linear-gradient(180deg, rgba(8, 60, 139, .96), rgba(7, 42, 99, .98)), url("/login-background.svg"); }
+.login-dark .panel-right { background: #1e293b; }
+.login-dark .logo-row { color: #60a5fa; }
+.login-dark .form-heading { color: #f8fafc; }
+.login-dark .form-subheading,
+.login-dark .form-label-custom,
+.login-dark .bottom-row,
+.login-dark .support-link { color: #cbd5e1; }
+.login-dark .forgot-password,
+.login-dark .bottom-row a { color: #93c5fd; }
+.login-dark .input-group-custom,
+.login-dark .reset-input,
+.login-dark .contact-message { background: #0f172a; border-color: #475569; }
+.login-dark .input-group-custom .form-control,
+.login-dark .input-group-custom .input-group-text { color: #e2e8f0; }
+.login-dark .input-group-custom .form-control,
+.login-dark .input-group-custom .form-control:focus {
+    background-color: transparent !important;
+    color: #e2e8f0;
+    caret-color: #93c5fd;
+}
+.login-dark .input-group-custom .form-control:-webkit-autofill,
+.login-dark .input-group-custom .form-control:-webkit-autofill:hover,
+.login-dark .input-group-custom .form-control:-webkit-autofill:focus {
+    -webkit-text-fill-color: #e2e8f0;
+    -webkit-box-shadow: 0 0 0 1000px #0f172a inset;
+    transition: background-color 9999s ease-out 0s;
+}
+.login-dark .input-group-custom .form-control::placeholder { color: #64748b; }
+.login-dark .toggle-eye { color: #94a3b8; }
+.login-dark .input-group-custom:focus-within { border-color: #60a5fa; box-shadow: 0 0 0 3px rgb(59 130 246 / .25); }
+.login-dark .reset-input:focus,
+.login-dark .contact-message:focus { border-color: #60a5fa; box-shadow: 0 0 0 3px rgb(59 130 246 / .25); }
+.login-dark .reset-input:focus,
+.login-dark .contact-message:focus {
+    background-color: #0f172a;
+    color: #e2e8f0;
+}
+.login-dark .reset-input,
+.login-dark .contact-message { caret-color: #93c5fd; }
+.login-dark .login-theme-toggle { background: #0f172a; border-color: #475569; color: #facc15; }
+.login-dark .login-theme-toggle:hover { background: #172554; border-color: #facc15; }
 
 @media (max-width: 991.98px) {
     .auth-card { max-width: 690px; }

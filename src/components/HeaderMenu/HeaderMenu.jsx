@@ -109,8 +109,8 @@ export default function HeaderMenu() {
           <span className="btn-text">Nuevo Paciente</span>
         </button>
 
-        <button className="icon-btn" aria-label="Modo Oscuro" onClick={toggleTheme}>
-          <i className="bi bi-moon-stars"></i>
+        <button className="icon-btn theme-toggle" aria-label={theme === 'dark' ? 'Activar modo claro' : 'Activar modo oscuro'} onClick={toggleTheme}>
+          <i key={theme} className={`bi theme-toggle-icon ${theme === 'dark' ? 'bi-sun-fill' : 'bi-moon-stars-fill'}`} aria-hidden="true"></i>
         </button>
        
         <div className="profile">
