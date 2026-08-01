@@ -96,18 +96,18 @@ function Login() {
             <form className="w-100" onSubmit={logueado}>
               <div className="mb-3">
                 <label className="form-label-custom mb-2">
-                  Id médico o correo electrónico
+                  Correo electrónico
                 </label>
 
                 <div className="input-group input-group-custom">
                   <span className="input-group-text">
-                    <i className="bi bi-person-vcard"></i>
+                    <i className="bi bi-envelope"></i>
                   </span>
 
                   <input
-                    type="text"
+                    type="email"
                     className="form-control"
-                    placeholder="ej. MED-123456"
+                    placeholder="usuario@visium.cl"
                     value={medico}
                     onChange={(e) => setMedico(e.target.value)}
                     required
