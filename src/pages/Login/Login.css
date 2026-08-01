@@ -346,7 +346,9 @@
     color: #e2e8f0;
 }
 .login-dark .reset-input,
-.login-dark .contact-message { caret-color: #93c5fd; }
+.login-dark .contact-message { color: #e2e8f0; caret-color: #93c5fd; }
+.login-dark .reset-back { color: #93c5fd; }
+.login-dark .reset-message { color: #fca5a5; }
 .login-dark .login-theme-toggle { background: #0f172a; border-color: #475569; color: #facc15; }
 .login-dark .login-theme-toggle:hover { background: #172554; border-color: #facc15; }
 

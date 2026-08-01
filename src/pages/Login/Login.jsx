@@ -89,7 +89,6 @@ function Login() {
             </Link>
 
             <h1 className="form-heading">Portal de Médico</h1>
-
             <p className="form-subheading">
               Ingrese sus credenciales para acceder al panel clínico.
             </p>

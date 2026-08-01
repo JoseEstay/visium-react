@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import eyeLogo from "../../assets/logo-eye.svg";
 import "./Menu.css";
 
@@ -13,6 +13,7 @@ const navigationItems = [
 ];
 
 export default function MenuLateral() {
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [adminOpen, setAdminOpen] = useState(false);
   const [isDevelopmentModalOpen, setIsDevelopmentModalOpen] = useState(false);
@@ -29,6 +30,13 @@ export default function MenuLateral() {
 
   const toggleMenu = () => setIsOpen((open) => !open);
   const closeMenu = () => setIsOpen(false);
+  const handleLogout = (event) => {
+    event.preventDefault();
+    localStorage.removeItem("sesionIniciada");
+    localStorage.removeItem("usuarioActual");
+    closeMenu();
+    navigate("/login", { replace: true });
+  };
   const openDevelopmentModal = () => {
     closeMenu();
     setIsDevelopmentModalOpen(true);
@@ -132,7 +140,7 @@ export default function MenuLateral() {
       </nav>
 
       <div className="sidebar-bottom">
-        <NavLink className={navigationClassName(true)} to="/login" onClick={closeMenu}>
+        <NavLink className={navigationClassName(true)} to="/login" onClick={handleLogout}>
           <i className="bi bi-box-arrow-right"></i>
           <span className="nav-label">Cerrar Sesión</span>
         </NavLink>
