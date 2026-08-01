@@ -88,7 +88,7 @@ function Home() {
 
                                 <button
                                     type="button"
-                                    onClick={() => window.location.href = "/login"}
+                                    onClick={() => navigate("/login")}
                                     className="btn btn-brand-outline px-3 py-2 d-inline-flex align-items-center gap-2 fw-semibold btn-medico flex-shrink-0"
                                 >
                                     Portal Médico

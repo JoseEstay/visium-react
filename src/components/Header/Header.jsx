@@ -1,5 +1,6 @@
 import "./Header.css";
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 
 
 
@@ -41,8 +42,8 @@ function Header() {
 
 
 
-                    <a
-                        href="/"
+                    <Link
+                        to="/"
                         className="d-flex align-items-center text-decoration-none fw-bold fs-4 logo-text z-3"
                     >
 
@@ -50,7 +51,7 @@ function Header() {
 
                         Visium
 
-                    </a>
+                    </Link>
 
 
 
@@ -99,15 +100,15 @@ function Header() {
 
                             <li className="nav-item">
 
-                                <a
-                                    href="/"
+                                <Link
+                                    to="/"
                                     className={`nav-link inicio px-3 fw-semibold ${seccionActiva === "inicio" ? "active-link" : ""}`}
                                     onClick={() => setSeccionActiva("inicio")}
                                 >
 
                                     Inicio
 
-                                </a>
+                                </Link>
 
                             </li>
 
@@ -167,11 +168,11 @@ function Header() {
 
 
 
-                            <a href="/solicitar-demo" className="btn btn-outline-brand fw-semibold text-nowrap">
+                            <Link to="/solicitar-demo" className="btn btn-outline-brand fw-semibold text-nowrap">
 
                                 Solicitar Demo
 
-                            </a>
+                            </Link>
 
 
 
@@ -179,9 +180,9 @@ function Header() {
 
 
 
-                            <a
+                            <Link
 
-                                href="/login"
+                                to="/login"
 
                                 className="btn btn-brand-primary fw-semibold text-nowrap d-inline-block"
 
@@ -189,7 +190,7 @@ function Header() {
 
                                 Portal Médico
 
-                            </a>
+                            </Link>
 
 
 
