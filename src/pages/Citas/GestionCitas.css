@@ -773,6 +773,21 @@ a {
     flex-direction: column;
     align-items: flex-start;
   }
+
+  .tabs-title {
+    width: 100%;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .tabs-title h3 {
+    flex-basis: 100%;
+  }
+
+  .tabs-title .agenda-slider-controls {
+    margin-left: auto;
+  }
 }
 /* Modal de agendar cita */
 .citas-modal {

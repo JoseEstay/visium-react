@@ -1356,6 +1356,39 @@ html.dark .gestion-pacientes .filter-menu select {
 @media (max-width: 767.98px) {
     .gestion-pacientes .filter-control { flex: 1; }
     .gestion-pacientes .filter-control .filter-btn { width: 100%; }
+
+    /* Todas las respuestas comienzan en la misma columna visual en las
+       tarjetas móviles; la foto no desplaza el nombre del paciente. */
+    .gestion-pacientes .patients-table-scroll td.patient {
+        grid-template-columns: minmax(105px, 38%) minmax(0, 1fr);
+    }
+
+    .gestion-pacientes .patients-table-scroll td.patient::before {
+        grid-row: 1 / span 2;
+        align-self: center;
+    }
+
+    .gestion-pacientes .patients-table-scroll td.patient img,
+    .gestion-pacientes .patients-table-scroll td.patient > div {
+        grid-column: 2;
+    }
+
+    .gestion-pacientes .patients-table-scroll td.patient img { grid-row: 1; }
+    .gestion-pacientes .patients-table-scroll td.patient > div { grid-row: 2; }
+
+    .gestion-pacientes .patients-table-scroll td,
+    .gestion-pacientes .patients-table-scroll td::before,
+    .gestion-pacientes .patients-table-scroll td.patient > div {
+        text-align: center;
+    }
+
+    .gestion-pacientes .patients-table-scroll td::before {
+        justify-self: center;
+    }
+
+    .gestion-pacientes .patients-table-scroll .row-actions {
+        justify-content: center;
+    }
 }
 
 @media (min-width: 768px) {
@@ -1547,7 +1580,7 @@ html.dark .gestion-pacientes .export-btn:hover {
     }
 
     .gestion-pacientes .patients-table-scroll td.patient {
-        grid-template-columns: minmax(88px, 38%) 44px minmax(0, 1fr);
+        grid-template-columns: minmax(88px, 38%) minmax(0, 1fr);
         gap: 8px;
     }
 
