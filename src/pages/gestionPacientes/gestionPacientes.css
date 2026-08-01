@@ -1129,7 +1129,9 @@
         }
     }
 
-    @container (max-width: 800px) {
+    /* Cuando el panel se estrecha (por ejemplo, al abrir DevTools o con el
+       menú lateral visible), cinco columnas dejan de ser legibles. */
+    @container (max-width: 950px) {
         .patients-table-scroll { overflow-x: visible; }
         .patients-table-scroll table, .patients-table-scroll tbody, .patients-table-scroll tr, .patients-table-scroll td { display: block; width: 100%; min-width: 0; }
         .patients-table-scroll thead { display: none; }
@@ -1502,7 +1504,7 @@ html.dark .gestion-pacientes .export-btn:hover {
     color: #bfdbfe;
 }
 
-@media (max-width: 800px) {
+@media (max-width: 950px) {
     html.dark .gestion-pacientes .patients-table-scroll .patient-row {
         background: #1e293b;
         border-color: #334155;
@@ -1514,7 +1516,7 @@ html.dark .gestion-pacientes .export-btn:hover {
 }
 
 /* El listado también cambia a tarjetas según el ancho del panel, no sólo del viewport. */
-@container (max-width: 800px) {
+@container (max-width: 950px) {
     html.dark .gestion-pacientes .patients-table-scroll .patient-row {
         background: #1e293b;
         border-color: #334155;

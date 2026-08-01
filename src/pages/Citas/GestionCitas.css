@@ -426,6 +426,8 @@ a {
   padding: 18px 18px 22px;
 }
 
+.agenda-header { padding-bottom: 14px; border-bottom: 1px solid var(--gray-300); }
+
 .tabs-title {
   gap: 16px;
 }
@@ -460,13 +462,27 @@ a {
   gap: 18px;
 }
 .agenda-oculta { display: none; }
-.agenda-semanal { display: grid; grid-template-columns: repeat(7, minmax(150px, 1fr)); gap: 10px; overflow-x: auto; padding-top: 20px; }
-.dia-semanal { min-height: 220px; padding: 10px; border: 1px solid var(--gray-300); border-radius: 8px; background: var(--gray-50); }
-.dia-semanal h4 { margin: 0 0 10px; font-size: 12px; text-transform: capitalize; }
-.dia-semanal article { display: grid; grid-template-columns: auto 1fr; gap: 7px; margin-bottom: 8px; padding: 8px; border-radius: 6px; background: var(--white); font-size: 11px; }
-.dia-semanal time { color: var(--blue-800); font-weight: 700; }
-.dia-semanal strong,.dia-semanal span { display:block; overflow-wrap:anywhere; }
-.dia-semanal span,.dia-semanal p { color: var(--gray-500); font-size: 10px; }
+.agenda-slider-controls { display: flex; gap: 6px; margin-left: auto; }
+.agenda-slider-controls button { display: grid; width: 28px; height: 28px; place-items: center; border: 1px solid var(--gray-300); border-radius: 5px; color: var(--blue-800); background: var(--white); cursor: pointer; }
+.agenda-slider-controls button:hover { background: var(--gray-100); }
+.agenda-semanal { display: flex; gap: 8px; overflow-x: auto; scroll-snap-type: x proximity; overscroll-behavior-x: contain; padding: 12px 0; scrollbar-width: thin; cursor: ew-resize; }
+.dia-semanal { flex: 0 0 126px; min-height: 54px; padding: 9px 10px; border: 1px solid var(--gray-300); border-radius: 7px; background: var(--gray-50); scroll-snap-align: start; text-align: left; cursor: pointer; font: inherit; }
+.dia-semanal strong,.dia-semanal span { display: block; overflow-wrap: anywhere; }
+.dia-semanal strong { color: var(--gray-800); font-size: 12px; text-transform: capitalize; }
+.dia-semanal span { margin-top: 4px; color: var(--gray-500); font-size: 10px; }
+.dia-semanal:hover { border-color: var(--blue-800); background: var(--blue-50); }
+.dia-semanal.selected { border-color: var(--blue-800); background: var(--blue-800); }
+.dia-semanal.selected strong,.dia-semanal.selected span { color: var(--white); }
+.agenda-semanal-scroll { margin-top: 12px; overflow-x: auto; scrollbar-width: thin; }
+.agenda-semanal-scroll > div { width: 1110px; height: 1px; }
+.agenda-semanal-detalle { display: grid; grid-template-columns: repeat(7, minmax(150px, 1fr)); gap: 10px; overflow-x: auto; padding-top: 12px; scrollbar-width: none; }
+.agenda-semanal-detalle::-webkit-scrollbar { display: none; }
+.agenda-dia-detalle { min-height: 220px; padding: 10px; border: 1px solid var(--gray-300); border-radius: 8px; background: var(--gray-50); }
+.agenda-dia-detalle h4 { margin: 0 0 10px; font-size: 12px; text-transform: capitalize; }
+.agenda-dia-detalle article { display: grid; grid-template-columns: auto 1fr; gap: 7px; margin-bottom: 8px; padding: 8px; border-radius: 6px; background: var(--white); font-size: 11px; }
+.agenda-dia-detalle time { color: var(--blue-800); font-weight: 700; }
+.agenda-dia-detalle strong,.agenda-dia-detalle span { display: block; overflow-wrap: anywhere; }
+.agenda-dia-detalle span,.agenda-dia-detalle p { color: var(--gray-500); font-size: 10px; }
 
 .time-row {
   position: relative;
@@ -1029,12 +1045,21 @@ html.dark .tabs {
 
 html.dark .tabs button { color: #94a3b8; }
 html.dark .tabs button.active { background: #334155; color: #f8fafc; box-shadow: none; }
+html.dark .agenda-slider-controls button { background: #1e293b; border-color: #475569; color: #93c5fd; }
+html.dark .agenda-slider-controls button:hover { background: #334155; }
 
 html.dark .appointment.completed { background: #172033; opacity: 1; }
 html.dark .dia-semanal { background: #172033; border-color: #334155; }
 html.dark .dia-semanal h4, html.dark .dia-semanal strong { color: #e2e8f0; }
 html.dark .dia-semanal article { background: #1e293b; }
 html.dark .dia-semanal span, html.dark .dia-semanal p { color: #94a3b8; }
+html.dark .dia-semanal:hover { background: #1e3a8a; border-color: #60a5fa; }
+html.dark .dia-semanal.selected { background: #2563eb; border-color: #60a5fa; }
+html.dark .dia-semanal.selected strong, html.dark .dia-semanal.selected span { color: #ffffff; }
+html.dark .agenda-dia-detalle { background: #172033; border-color: #334155; }
+html.dark .agenda-dia-detalle h4, html.dark .agenda-dia-detalle strong { color: #e2e8f0; }
+html.dark .agenda-dia-detalle article { background: #1e293b; }
+html.dark .agenda-dia-detalle span, html.dark .agenda-dia-detalle p { color: #94a3b8; }
 html.dark .appointment.selected { border-color: #3b82f6; box-shadow: 0 0 0 2px rgb(59 130 246 / .18); }
 html.dark .appointment-icon { background: #0f172a; }
 html.dark .appointment-icon.primary { background: #1d4ed8; }

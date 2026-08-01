@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import agendarIcon from '../../assets/img/agendar.svg';
 import configIcon from '../../assets/img/config.svg';
 import masIcon from '../../assets/img/mas.svg';
@@ -65,6 +65,9 @@ function normalizarCita(cita) {
 }
 
 export default function GestionCitas() {
+  const agendaSemanalRef = useRef(null);
+  const agendaSemanalDetalleRef = useRef(null);
+  const agendaSemanalScrollRef = useRef(null);
   const [mostrarAgenda, setMostrarAgenda] = useState(false);
   const [citaAReemplazar, setCitaAReemplazar] = useState(null);
   const [citaReagendando, setCitaReagendando] = useState(null);
@@ -76,7 +79,7 @@ export default function GestionCitas() {
   const [form, setForm] = useState(formVacio);
   const [fechaActual, setFechaActual] = useState(() => new Date());
   const [vistaAgenda, setVistaAgenda] = useState('Día');
-  const [fechaSeleccionada, setFechaSeleccionada] = useState(FECHA_DEMO);
+  const [fechaSeleccionada, setFechaSeleccionada] = useState(() => fechaISO(new Date()));
   const [citas, setCitas] = useState(() => {
     try {
       return JSON.parse(localStorage.getItem(CITAS_KEY) || '[]').map(normalizarCita);
@@ -112,6 +115,22 @@ export default function GestionCitas() {
     dia.setDate(inicioSemana.getDate() + indice);
     return fechaISO(dia);
   });
+
+  const moverAgendaSemanal = (direccion) => {
+    agendaSemanalRef.current?.scrollBy({ left: direccion * 280, behavior: 'smooth' });
+  };
+
+  const desplazarAgendaConRueda = (evento) => {
+    if (!agendaSemanalRef.current || !evento.deltaY) return;
+    evento.preventDefault();
+    agendaSemanalRef.current.scrollLeft += evento.deltaY;
+  };
+
+  const sincronizarDesplazamientoSemanal = (origen) => {
+    const destino = origen === 'barra' ? agendaSemanalDetalleRef.current : agendaSemanalScrollRef.current;
+    const fuente = origen === 'barra' ? agendaSemanalScrollRef.current : agendaSemanalDetalleRef.current;
+    if (destino && fuente && destino.scrollLeft !== fuente.scrollLeft) destino.scrollLeft = fuente.scrollLeft;
+  };
 
   useEffect(() => {
     fetch('/data/pacientes.json')
@@ -304,13 +323,27 @@ export default function GestionCitas() {
         <section className="agenda-card card" aria-label="Agenda diaria">
           <div className="agenda-header">
             <div className="tabs-title">
-              <h3>Agenda {vistaAgenda === 'Día' ? 'Diaria' : 'Semanal'}</h3>
+              <h3>Agenda {vistaAgenda === 'Día' ? 'diaria' : 'semanal'}</h3>
               <div className="tabs" aria-label="Vista de agenda">
                 <button className={vistaAgenda === 'Día' ? 'active' : ''} type="button" onClick={() => setVistaAgenda('Día')}>Día</button>
                 <button className={vistaAgenda === 'Semana' ? 'active' : ''} type="button" onClick={() => setVistaAgenda('Semana')}>Semana</button>
               </div>
+              {vistaAgenda === 'Día' && <div className="agenda-slider-controls" aria-label="Navegación del resumen semanal">
+                <button type="button" onClick={() => moverAgendaSemanal(-1)} aria-label="Ver días anteriores"><i className="bi bi-chevron-left" /></button>
+                <button type="button" onClick={() => moverAgendaSemanal(1)} aria-label="Ver días siguientes"><i className="bi bi-chevron-right" /></button>
+              </div>}
             </div>
           </div>
+
+          {vistaAgenda === 'Día' && <div className="agenda-semanal" ref={agendaSemanalRef} onWheel={desplazarAgendaConRueda} aria-label="Resumen semanal; usa la rueda del mouse para navegar">
+            {diasSemana.map((dia) => {
+              const cantidad = cantidadCitasPorFecha[dia] || 0;
+              return <button className={`dia-semanal ${dia === fechaSeleccionada ? 'selected' : ''}`} type="button" key={dia} onClick={() => setFechaSeleccionada(dia)} aria-pressed={dia === fechaSeleccionada}>
+                <strong>{new Intl.DateTimeFormat('es-CL', { weekday: 'short', day: 'numeric', month: 'short' }).format(new Date(`${dia}T00:00:00`)).replace('.', '')}</strong>
+                <span>{cantidad ? `${cantidad} ${cantidad === 1 ? 'cita' : 'citas'}` : 'Sin citas'}</span>
+              </button>;
+            })}
+          </div>}
 
           <div className={`timeline ${vistaAgenda === 'Semana' ? 'agenda-oculta' : ''}`}>
             {fechaSeleccionada === FECHA_DEMO && citas.length === 0 && <>
@@ -432,15 +465,18 @@ export default function GestionCitas() {
               </button>
             </div>
           </div>
-          {vistaAgenda === 'Semana' && <div className="agenda-semanal">
-            {diasSemana.map((dia) => {
-              const citasDia = citas.filter((cita) => fechaDeCita(cita.fecha) === dia).sort((a, b) => a.horaInicio.localeCompare(b.horaInicio));
-              return <section className="dia-semanal" key={dia}>
-                <h4>{new Intl.DateTimeFormat('es-CL', { weekday: 'short', day: 'numeric', month: 'short' }).format(new Date(`${dia}T00:00:00`))}</h4>
-                {citasDia.length ? citasDia.map((cita) => <article key={cita.id}><time>{cita.horaInicio}</time><div><strong>{cita.pacienteNombre}</strong><span>{cita.motivo}</span></div></article>) : <p>Sin citas</p>}
-              </section>;
-            })}
-          </div>}
+          {vistaAgenda === 'Semana' && <>
+            <div className="agenda-semanal-scroll" ref={agendaSemanalScrollRef} onScroll={() => sincronizarDesplazamientoSemanal('barra')} aria-label="Desplazamiento horizontal de agenda semanal"><div /></div>
+            <div className="agenda-semanal-detalle" ref={agendaSemanalDetalleRef} onScroll={() => sincronizarDesplazamientoSemanal('detalle')}>
+              {diasSemana.map((dia) => {
+                const citasDia = citas.filter((cita) => fechaDeCita(cita.fecha) === dia).sort((a, b) => a.horaInicio.localeCompare(b.horaInicio));
+                return <section className="agenda-dia-detalle" key={dia}>
+                  <h4>{new Intl.DateTimeFormat('es-CL', { weekday: 'short', day: 'numeric', month: 'short' }).format(new Date(`${dia}T00:00:00`)).replace('.', '')}</h4>
+                  {citasDia.length ? citasDia.map((cita) => <article key={cita.id}><time>{cita.horaInicio}</time><div><strong>{cita.pacienteNombre}</strong><span>{cita.motivo}</span></div></article>) : <p>Sin citas</p>}
+                </section>;
+              })}
+            </div>
+          </>}
         </section>
       </section>
 
