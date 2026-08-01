@@ -133,6 +133,26 @@ export default function GestionCitas() {
   };
 
   useEffect(() => {
+    if (vistaAgenda !== 'Día') return;
+    const centrarDiaSeleccionado = () => {
+      const selector = agendaSemanalRef.current;
+      const diaSeleccionado = selector?.querySelector('.dia-semanal.selected');
+      if (!selector || !diaSeleccionado) return;
+      selector.scrollTo({
+        left: diaSeleccionado.offsetLeft - ((selector.clientWidth - diaSeleccionado.clientWidth) / 2),
+        behavior: 'smooth',
+      });
+    };
+
+    const frame = window.requestAnimationFrame(centrarDiaSeleccionado);
+    window.addEventListener('resize', centrarDiaSeleccionado);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.removeEventListener('resize', centrarDiaSeleccionado);
+    };
+  }, [fechaSeleccionada, vistaAgenda]);
+
+  useEffect(() => {
     fetch('/data/pacientes.json')
       .then((respuesta) => respuesta.json())
       .then((base) => {

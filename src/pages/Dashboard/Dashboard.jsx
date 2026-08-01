@@ -90,13 +90,18 @@ export default function Dashboard() {
     weekday: "long", day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit", hour12: false,
   }).format(ahora);
   const textoPendientes = `${pendientes} cita${pendientes === 1 ? "" : "s"} pendiente${pendientes === 1 ? "" : "s"}`;
+  const citaNoConfirmada = citaEnCurso && citaEnCurso.estado !== "Confirmada";
 
-  const confirmarCita = () => {
+  const abrirFichaCita = () => {
     if (!citaEnCurso) return;
-    const actualizadas = citas.map((cita) => cita.id === citaEnCurso.id ? { ...cita, estado: "Confirmada" } : cita);
+    navigate(`/paciente/${citaEnCurso.pacienteRut}`);
+  };
+
+  const cancelarCita = () => {
+    if (!citaEnCurso) return;
+    const actualizadas = citas.map((cita) => cita.id === citaEnCurso.id ? { ...cita, estado: "Cancelada" } : cita);
     setCitas(actualizadas);
     localStorage.setItem(CITAS_KEY, JSON.stringify(actualizadas));
-    navigate(`/paciente/${citaEnCurso.pacienteRut}`);
   };
 
   return (
@@ -118,7 +123,13 @@ export default function Dashboard() {
                   <div className="nombre-badge-row"><h2 className="paciente-nombre">{citaEnCurso.pacienteNombre}</h2></div>
                   <p className="consulta-tipo">{citaEnCurso.motivo}</p>
                   <div className="horario-meta"><i className="bi bi-clock"></i><span>{citaEnCurso.hora}</span></div>
-                  <button className="btn-iniciar" type="button" onClick={confirmarCita}><i className="bi bi-play-circle"></i>Confirmar cita</button>
+                  {citaNoConfirmada ? <>
+                    <p className="cita-no-confirmada"><i className="bi bi-exclamation-circle" /> Cita no confirmada</p>
+                    <div className="cita-acciones">
+                      <button className="btn-reagendar" type="button" onClick={() => navigate("/citas")}><i className="bi bi-calendar-event" /> Reagendar</button>
+                      <button className="btn-cancelar" type="button" onClick={cancelarCita}><i className="bi bi-x-circle" /> Cancelar</button>
+                    </div>
+                  </> : <button className="btn-iniciar" type="button" onClick={abrirFichaCita}><i className="bi bi-folder2-open"></i>Abrir ficha</button>}
                 </div>
               </div>
             </div>
