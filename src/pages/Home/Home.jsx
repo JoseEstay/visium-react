@@ -1,9 +1,11 @@
+import { useNavigate } from "react-router-dom";
 import "./Home.css";
 
 import banner from "../../assets/img/img-banner.png";
 
 
 function Home() {
+    const navigate = useNavigate();
 
     return (
 
@@ -75,11 +77,10 @@ function Home() {
 
                                 <button
                                     type="button"
+                                    onClick={() => navigate("/contacto")}
                                     className="btn btn-brand-primary px-3 py-2 fw-semibold"
                                 >
-
                                     Contáctanos
-
                                 </button>
 
 
