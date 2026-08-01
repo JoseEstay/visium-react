@@ -1093,7 +1093,15 @@ html.dark .citas-lista-pacientes {
   border-color: #334155;
   color: #f8fafc;
 }
-html.dark .citas-campo input[type="time"] { color-scheme: dark; }
+/* El calendario nativo toma el esquema oscuro del navegador al abrirse. */
+html.dark .citas-campo input[type="date"],
+html.dark .citas-campo input[type="time"] {
+  color-scheme: dark;
+}
+
+html.dark .citas-campo input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+}
 html.dark .citas-lista-pacientes::-webkit-scrollbar-thumb { background: #64748b; }
 html.dark .citas-lista-pacientes::-webkit-scrollbar-track { background: #0f172a; }
 html.dark .citas-modal-card { scrollbar-color: #64748b #172033; }
