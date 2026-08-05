@@ -56,3 +56,7 @@ html.dark ::-webkit-scrollbar-thumb:hover { background: #64748b; }
 html.dark .delete-error { color: #fca5a5; }
 html.dark .danger-save { background: #b91c1c; }
 html.dark .danger-save:hover { background: #dc2626; }
+
+/* Los selectores del formulario de usuarios usan los mismos controles del módulo. */
+.admin-modal select { min-width: 0; padding: 10px; border: 1px solid #cbd5e1; border-radius: 7px; font: inherit; color: #334155; background: #fff; }
+.admin-modal select:focus { outline: 0; border-color: #003896; box-shadow: 0 0 0 3px rgba(0,56,150,.12); }

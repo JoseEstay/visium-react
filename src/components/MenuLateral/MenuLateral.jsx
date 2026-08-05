@@ -23,7 +23,7 @@ export default function MenuLateral() {
   const user = JSON.parse(localStorage.getItem("usuarioActual") || "null");
   const canUnlockMetrics = ["administrador sucursales", "administrador sucursal", "jefe"].includes(user?.rol);
   const adminItems = ["administrador sucursales", "jefe"].includes(user?.rol)
-    ? ["sucursales", "administradores", "profesionales", "recepcionistas", "citas", "pacientes"]
+    ? ["usuarios", "sucursales", "administradores", "profesionales", "recepcionistas", "citas", "pacientes"]
     : user?.rol === "administrador sucursal"
       ? ["profesionales", "recepcionistas", "citas", "pacientes"]
       : [];

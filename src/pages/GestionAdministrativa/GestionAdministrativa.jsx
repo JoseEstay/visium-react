@@ -3,6 +3,11 @@ import { Navigate, useNavigate, useParams } from "react-router-dom";
 import "./GestionAdministrativa.css";
 
 const resources = {
+  usuarios: {
+    title: "Usuarios",
+    fields: ["nombre", "email", "rol", "sucursal"],
+    formFields: ["nombre", "email", "password", "rol", "sucursalId"]
+  },
   sucursales: { title: "Sucursales", file: "sucursales", fields: ["nombre", "ciudad", "direccion", "telefono"] },
   administradores: { title: "Administradores de sucursal", fields: ["nombre", "email", "sucursal"], formFields: ["nombre", "email", "password", "sucursalId", "sucursal"] },
   profesionales: { title: "Profesionales", file: "profesionales", fields: ["nombre", "especialidad", "email", "sucursal"] },
@@ -129,6 +134,28 @@ export default function GestionAdministrativa() {
         .catch((error) => console.error("Error cargando administradores de sucursal", error));
       return () => { activo = false; };
     }
+    if (resource === "usuarios") {
+      Promise.all([fetch("/data/usuarios.json", { cache: "no-store" }), fetch("/data/sucursales.json", { cache: "no-store" })])
+        .then(async ([usersResponse, branchesResponse]) => {
+          if (!usersResponse.ok || !branchesResponse.ok) throw new Error("No se pudieron cargar los usuarios");
+          const [baseUsers, branches] = await Promise.all([usersResponse.json(), branchesResponse.json()]);
+          let storedUsers = [];
+          try { storedUsers = JSON.parse(localStorage.getItem("visium.usuarios") || "[]"); } catch (error) { console.error("Error leyendo usuarios guardados", error); }
+          const savedById = new Map(storedUsers.map((item) => [item.id, item]));
+          const users = [
+            ...baseUsers.map((item) => ({ ...item, ...(savedById.get(item.id) || {}) })),
+            ...storedUsers.filter((item) => !baseUsers.some((baseUser) => baseUser.id === item.id))
+          ];
+          const branchesById = new Map(branches.map((item) => [item.id, item.nombre]));
+          const rolesSinSucursal = ["administrador sucursales", "jefe"];
+          if (activo) setRecords(users.map((item) => {
+            const sucursalId = rolesSinSucursal.includes(item.rol) ? null : item.sucursalId;
+            return { ...item, sucursalId, sucursal: branchesById.get(sucursalId) || "Sin sucursal asignada" };
+          }));
+        })
+        .catch((error) => console.error("Error cargando usuarios", error));
+      return () => { activo = false; };
+    }
     if (resource === "citas") {
       fetch("/data/citas.json", { cache: "no-store" })
         .then((response) => response.ok ? response.json() : [])
@@ -193,6 +220,20 @@ export default function GestionAdministrativa() {
   };
   const save = (event) => {
     event.preventDefault();
+    if (resource === "usuarios") {
+      const branchNames = { "S-001": "Visium Santiago Centro", "S-002": "Visium Providencia" };
+      const rolesSinSucursal = ["administrador sucursales", "jefe"];
+      const savedUser = { ...form, sucursalId: rolesSinSucursal.includes(form.rol) ? null : form.sucursalId, sucursal: undefined };
+      const branchName = branchNames[savedUser.sucursalId] || "Sin sucursal asignada";
+      const updatedUsers = records.some((record) => record.id === savedUser.id)
+        ? records.map((record) => record.id === savedUser.id ? { ...savedUser, sucursal: branchName } : record)
+        : [...records, { ...savedUser, sucursal: branchName }];
+      setRecords(updatedUsers);
+      localStorage.setItem("visium.usuarios", JSON.stringify(updatedUsers.map(({ sucursal, ...userRecord }) => userRecord)));
+      if (user?.id === savedUser.id) localStorage.setItem("usuarioActual", JSON.stringify(savedUser));
+      setForm(null);
+      return;
+    }
     if (resource === "recepcionistas" || resource === "administradores") {
       const userId = form.usuarioId || `U-${Date.now()}`;
       const isReceptionist = resource === "recepcionistas";
@@ -248,10 +289,15 @@ export default function GestionAdministrativa() {
       setLinkedUsers(updatedUsers);
       localStorage.setItem("visium.usuarios", JSON.stringify(updatedUsers));
     }
-    if (resource === "administradores") {
+    if (resource === "administradores" || resource === "usuarios") {
       const updatedUsers = linkedUsers.filter((item) => item.id !== target.id);
-      setLinkedUsers(updatedUsers);
-      localStorage.setItem("visium.usuarios", JSON.stringify(updatedUsers));
+      if (resource === "usuarios") {
+        const usersWithoutTarget = records.filter((record) => record.id !== target.id).map(({ sucursal, ...userRecord }) => userRecord);
+        localStorage.setItem("visium.usuarios", JSON.stringify(usersWithoutTarget));
+      } else {
+        setLinkedUsers(updatedUsers);
+        localStorage.setItem("visium.usuarios", JSON.stringify(updatedUsers));
+      }
     }
     setRecords((current) => current.filter((record) => recordIdentifier(record) !== recordIdentifier(target)));
     setRecordToDelete(null);
@@ -290,11 +336,11 @@ export default function GestionAdministrativa() {
   };
 
   return <section className="admin-page">
-    <div className="admin-heading"><div><h1>Gestión Administrativa</h1><p>{config.readOnly ? `${config.title}: consulta los usuarios asignados a cada sucursal.` : `${config.title}: busca y administra los registros.`}</p></div>{!config.readOnly && <button onClick={() => openForm()}><i className="bi bi-plus-lg" /> Agregar</button>}</div>
+    <div className="admin-heading"><div><h1>Gestión Administrativa</h1><p>{config.readOnly ? `${config.title}: consulta los usuarios asignados a cada sucursal.` : resource === "usuarios" ? "Usuarios: administra sus datos, sucursal asignada y roles." : `${config.title}: busca y administra los registros.`}</p></div>{!config.readOnly && <button onClick={() => openForm()}><i className="bi bi-plus-lg" /> Agregar</button>}</div>
     <input className="admin-search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder={`Buscar ${config.title.toLowerCase()}...`} />
     <div className="admin-table-wrap"><table className="admin-table"><thead><tr>{config.fields.map((field) => <th key={field}>{label(field)}</th>)}{!config.readOnly && <th>Acciones</th>}</tr></thead><tbody>{filtered.map((record) => <tr key={record.id}>{config.fields.map((field) => <td key={field} data-label={label(field)}>{record[field] || "—"}</td>)}{!config.readOnly && <td data-label="Acciones">{resource === "pacientes" && <button className="icon-action" onClick={() => navigate(`/recetas/historial/${record.rut}`)} aria-label="Ver historial de recetas" title="Ver historial de recetas"><i className="bi bi-clock-history" /></button>}<button className="icon-action" onClick={() => openForm(record)} aria-label="Editar"><i className="bi bi-pencil" /></button><button className="icon-action danger" onClick={() => remove(record.id)} aria-label="Eliminar"><i className="bi bi-trash" /></button></td>}</tr>)}</tbody></table></div>
-    {form && <div className="admin-modal" onClick={() => setForm(null)}><form onSubmit={save} onClick={(event) => event.stopPropagation()}><div className="modal-title"><h2>{records.some((record) => record.id === form.id) ? "Modificar" : "Agregar"} {config.title.slice(0, -1)}</h2><button type="button" onClick={() => setForm(null)}>&times;</button></div>{formFields.map((field) => <label key={field}>{label(field)}{field === "usuarioPassword" || (resource === "administradores" && field === "password") ? <span className="password-field"><input required type={showUserPassword ? "text" : "password"} value={form[field]} onChange={(event) => setForm({ ...form, [field]: event.target.value })} /><button type="button" onClick={() => setShowUserPassword((visible) => !visible)} aria-label={showUserPassword ? "Ocultar contraseña" : "Mostrar contraseña"}><i className={`bi bi-eye${showUserPassword ? "-slash" : ""}`} /></button></span> : <input required disabled={resource === "recepcionistas" && user.rol === "administrador sucursal" && (field === "sucursalId" || field === "sucursal")} value={form[field]} onChange={(event) => setForm({ ...form, [field]: event.target.value })} />}</label>)}<button className="save" type="submit">Guardar</button></form></div>}
-    {recordToDelete && <div className="admin-modal" onClick={() => setRecordToDelete(null)}><form onSubmit={confirmDeletion} onClick={(event) => event.stopPropagation()}><div className="modal-title"><h2>Confirmar eliminación</h2><button type="button" onClick={() => setRecordToDelete(null)}>&times;</button></div><p>{resource === "administradores" ? <>Ingresa la contraseña de <strong>{recordToDelete.nombre}</strong> para eliminar su cuenta.</> : <>¿Deseas eliminar el registro de <strong>{recordToDelete.nombre || recordToDelete.paciente || "este elemento"}</strong>? Ingresa tu contraseña para confirmar.</>}</p><label>Contraseña<input required autoFocus type="password" value={deletePassword} onChange={(event) => { setDeletePassword(event.target.value); setDeleteError(""); }} /></label>{deleteError && <p className="delete-error">{deleteError}</p>}<button className="save danger-save" type="submit">{resource === "administradores" ? "Eliminar administrador" : "Eliminar registro"}</button></form></div>}
+    {form && <div className="admin-modal" onClick={() => setForm(null)}><form onSubmit={save} onClick={(event) => event.stopPropagation()}><div className="modal-title"><h2>{records.some((record) => record.id === form.id) ? "Modificar" : "Agregar"} {config.title.slice(0, -1)}</h2><button type="button" onClick={() => setForm(null)}>&times;</button></div>{formFields.filter((field) => !(field === "sucursalId" && resource === "usuarios" && ["administrador sucursales", "jefe"].includes(form.rol))).map((field) => <label key={field}>{field === "sucursalId" && resource === "usuarios" ? "Sucursal" : label(field)}{field === "rol" && resource === "usuarios" ? <select required value={form.rol} onChange={(event) => setForm({ ...form, rol: event.target.value, sucursalId: ["administrador sucursales", "jefe"].includes(event.target.value) ? null : form.sucursalId })}><option value="">Selecciona un rol</option>{["administrador sucursales", "administrador sucursal", "jefe", "profesional", "recepcionista"].map((role) => <option key={role} value={role}>{label(role)}</option>)}</select> : field === "sucursalId" && resource === "usuarios" ? <select value={form.sucursalId || ""} onChange={(event) => setForm({ ...form, sucursalId: event.target.value || null })}><option value="">Sin sucursal asignada</option><option value="S-001">Visium Santiago Centro</option><option value="S-002">Visium Providencia</option></select> : field === "usuarioPassword" || ((resource === "administradores" || resource === "usuarios") && field === "password") ? <span className="password-field"><input required type={showUserPassword ? "text" : "password"} value={form[field]} onChange={(event) => setForm({ ...form, [field]: event.target.value })} /><button type="button" onClick={() => setShowUserPassword((visible) => !visible)} aria-label={showUserPassword ? "Ocultar contraseña" : "Mostrar contraseña"}><i className={`bi bi-eye${showUserPassword ? "-slash" : ""}`} /></button></span> : <input required disabled={resource === "recepcionistas" && user.rol === "administrador sucursal" && (field === "sucursalId" || field === "sucursal")} value={form[field]} onChange={(event) => setForm({ ...form, [field]: event.target.value })} />}</label>)}<button className="save" type="submit">Guardar</button></form></div>}
+    {recordToDelete && <div className="admin-modal" onClick={() => setRecordToDelete(null)}><form onSubmit={confirmDeletion} onClick={(event) => event.stopPropagation()}><div className="modal-title"><h2>Confirmar eliminación</h2><button type="button" onClick={() => setRecordToDelete(null)}>&times;</button></div><p>{resource === "administradores" ? <>Ingresa la contraseña de <strong>{recordToDelete.nombre}</strong> para eliminar su cuenta.</> : <>¿Deseas eliminar el registro de <strong>{recordToDelete.nombre || recordToDelete.paciente || "este elemento"}</strong>? Ingresa tu contraseña para confirmar.</>}</p><label>Contraseña<input required autoFocus type="password" value={deletePassword} onChange={(event) => { setDeletePassword(event.target.value); setDeleteError(""); }} /></label>{deleteError && <p className="delete-error">{deleteError}</p>}<button className="save danger-save" type="submit">{resource === "administradores" ? "Eliminar administrador" : resource === "usuarios" ? "Eliminar usuario" : "Eliminar registro"}</button></form></div>}
     {recipeToDelete && <div className="admin-modal" onClick={() => setRecipeToDelete(null)}><form onSubmit={confirmRecipeDeletion} onClick={(event) => event.stopPropagation()}><div className="modal-title"><h2>Confirmar eliminación</h2><button type="button" onClick={() => setRecipeToDelete(null)}>&times;</button></div><p>¿Deseas eliminar la receta del <strong>{recipeToDelete.fecha || "historial"}</strong>? Ingresa tu contraseña para confirmar.</p><label>Contraseña<input required autoFocus type="password" value={deletePassword} onChange={(event) => { setDeletePassword(event.target.value); setDeleteError(""); }} /></label>{deleteError && <p className="delete-error">{deleteError}</p>}<button className="save danger-save" type="submit">Eliminar receta</button></form></div>}
     {historyPatient && <div className="admin-modal" onClick={() => { setHistoryPatient(null); setRecipeForm(null); }}><div className="history-modal" style={{ width: "min(680px, 100%)", maxHeight: "calc(100vh - 36px)", overflow: "auto", background: "#fff", borderRadius: 12, padding: 24 }} onClick={(event) => event.stopPropagation()}><div className="modal-title"><h2>Historial de fichas · {historyPatient.nombre}</h2><button type="button" onClick={() => setHistoryPatient(null)}>&times;</button></div>{(historyPatient.recetas || []).length ? <div className="history-list">{historyPatient.recetas.map((recipe) => <article key={recipe.id} className="history-item" style={{ display: "flex", justifyContent: "space-between", gap: 16, padding: 14, marginTop: 12, border: "1px solid #e2e8f0", borderRadius: 9 }}><div><strong>{recipe.fecha || "Sin fecha"}</strong><p>{recipe.diagnostico || "Sin diagnóstico"}</p><small>{recipe.materialSugerido || "Receta óptica"}</small></div><div><button className="icon-action" onClick={() => setRecipeForm({ ...recipe })} aria-label="Editar ficha"><i className="bi bi-pencil" /></button><button className="icon-action danger" onClick={() => removeRecipe(recipe.id)} aria-label="Eliminar ficha"><i className="bi bi-trash" /></button></div></article>)}</div> : <p className="empty-history">Este paciente no tiene fichas registradas.</p>}{recipeForm && <form className="recipe-edit-form" onSubmit={saveRecipe}><label>Fecha<input required type="date" value={recipeForm.fecha || ""} onChange={(event) => setRecipeForm({ ...recipeForm, fecha: event.target.value })} /></label><label>Diagnóstico<input required value={recipeForm.diagnostico || ""} onChange={(event) => setRecipeForm({ ...recipeForm, diagnostico: event.target.value })} /></label><label>Tipo de visión<input required value={recipeForm.tipoVision || "Lejos"} onChange={(event) => setRecipeForm({ ...recipeForm, tipoVision: event.target.value })} /></label><label>Material sugerido<input required value={recipeForm.materialSugerido || ""} onChange={(event) => setRecipeForm({ ...recipeForm, materialSugerido: event.target.value })} /></label><label>Indicaciones<textarea value={recipeForm.indicaciones || ""} onChange={(event) => setRecipeForm({ ...recipeForm, indicaciones: event.target.value })} /></label><button className="save" type="submit">Guardar ficha</button></form>}</div></div>}
   </section>;
