@@ -2,6 +2,15 @@
 ## 2026-08-06
 
 ### Añadido
+- Flujo de consultas en Gestión de Citas: botón «Cerrar cita» en citas confirmadas abre un formulario (motivo, anamnesis, examen visual, diagnóstico y observaciones) que llama a `POST /consultas/cerrar-cita`; la cita pasa a Atendida y queda la consulta registrada.
+- Tras cerrar la cita, un modal de confirmación ofrece el botón «Crear ficha del paciente» que navega a la ficha de `NuevoPaciente` con los datos del paciente precargados.
+
+### Corregido
+- Creación de citas para usuarios sin sucursal asignada (p. ej. el JEFE demo): si el usuario no tiene `sucursalIds`, se usa la primera sucursal de la empresa activa (`GET /sucursales`).
+
+## 2026-08-06
+
+### Añadido
 - El frontend ahora consume la API real del backend (Spring Boot) en lugar de los datos simulados de `/data/*.json` y `localStorage`: `apiFetch` envía `X-Empresa-Id`, muestra los mensajes de error del backend y redirige a `/login` ante sesión expirada (401).
 - Nuevo hook `useFetch` con `refresh`, cancelación de peticiones y dependencias estables.
 - Página de cambio de contraseña propia conectada a `PUT /auth/me/password`.

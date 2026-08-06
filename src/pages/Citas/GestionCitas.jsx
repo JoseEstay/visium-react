@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import agendarIcon from '../../assets/img/agendar.svg';
 import masIcon from '../../assets/img/mas.svg';
 import resumenBackground from '../../assets/img/resumen-dia-background.svg';
@@ -22,6 +23,8 @@ const MAPA_ESTADOS = {
 };
 
 const formVacio = { pacienteId: '', profesionalId: '', fecha: fechaISO(), horaInicio: '14:00', horaFin: '14:30', motivo: '' };
+
+const formConsultaVacio = { motivoConsulta: '', anamnesis: '', examenVisual: '', diagnostico: '', observaciones: '' };
 
 function fechaHoraActualTexto(fecha) {
   const fechaFormateada = new Intl.DateTimeFormat('es-CL', {
@@ -60,6 +63,7 @@ function normalizarCita(cita) {
 }
 
 export default function GestionCitas() {
+  const navigate = useNavigate();
   const agendaSemanalRef = useRef(null);
   const agendaSemanalDetalleRef = useRef(null);
   const agendaSemanalScrollRef = useRef(null);
@@ -70,6 +74,9 @@ export default function GestionCitas() {
   const [busquedaPaciente, setBusquedaPaciente] = useState('');
   const [busquedaProfesional, setBusquedaProfesional] = useState('');
   const [form, setForm] = useState(formVacio);
+  const [formConsulta, setFormConsulta] = useState(formConsultaVacio);
+  const [citaEnConsulta, setCitaEnConsulta] = useState(null);
+  const [consultaGuardada, setConsultaGuardada] = useState(null);
   const [fechaActual, setFechaActual] = useState(() => new Date());
   const [vistaAgenda, setVistaAgenda] = useState('Día');
   const [fechaSeleccionada, setFechaSeleccionada] = useState(() => fechaISO(new Date()));
@@ -80,10 +87,12 @@ export default function GestionCitas() {
 
   const { data: pacientesApi } = useFetch('/pacientes?page=0&size=200');
   const { data: profesionalesApi } = useFetch('/profesionales');
+  const { data: sucursalesApi } = useFetch('/sucursales');
   const { data: citasApi, refresh: refrescarCitas } = useFetch(`/citas?desde=${rangoInicio}&hasta=${rangoFin}`);
 
   const pacientes = Array.isArray(pacientesApi?.content) ? pacientesApi.content : [];
   const profesionales = Array.isArray(profesionalesApi) ? profesionalesApi : [];
+  const sucursales = Array.isArray(sucursalesApi) ? sucursalesApi : [];
   const citas = (Array.isArray(citasApi) ? citasApi : []).map(normalizarCita);
 
   const fecha = new Date(`${fechaSeleccionada}T00:00:00`);
@@ -220,6 +229,33 @@ export default function GestionCitas() {
     }
   };
 
+  const guardarConsulta = async (evento) => {
+    evento.preventDefault();
+    if (!citaEnConsulta) return;
+    try {
+      await apiFetch('/consultas/cerrar-cita', {
+        method: 'POST',
+        body: JSON.stringify({
+          citaId: citaEnConsulta.id,
+          motivoConsulta: formConsulta.motivoConsulta.trim(),
+          anamnesis: formConsulta.anamnesis.trim(),
+          examenVisual: formConsulta.examenVisual.trim(),
+          diagnostico: formConsulta.diagnostico.trim(),
+          observaciones: formConsulta.observaciones.trim(),
+        }),
+      });
+      setConsultaGuardada({
+        pacienteId: citaEnConsulta.pacienteId,
+        pacienteNombre: citaEnConsulta.pacienteNombre,
+      });
+      setCitaEnConsulta(null);
+      setFormConsulta(formConsultaVacio);
+      refrescarCitas();
+    } catch (err) {
+      alert(err.message || 'No se pudo registrar la consulta.');
+    }
+  };
+
   const horarioDisponible = (fechaCita, horaInicio, citaId) => {
     const horaFin = sumarMediaHora(horaInicio);
     return !citas.some((cita) => cita.id !== citaId && cita.fecha === fechaCita && horaInicio < cita.horaFin && horaFin > cita.horaInicio);
@@ -268,7 +304,7 @@ export default function GestionCitas() {
     }
 
     const usuario = JSON.parse(localStorage.getItem('usuarioActual') || '{}');
-    const sucursalId = citaAReemplazar?.sucursalId || usuario?.sucursalIds?.[0];
+    const sucursalId = citaAReemplazar?.sucursalId || usuario?.sucursalIds?.[0] || sucursales?.[0]?.id;
     if (!sucursalId) {
       alert('No tienes una sucursal asignada para agendar citas.');
       return;
@@ -402,6 +438,7 @@ export default function GestionCitas() {
                   <span className={`badge ${cita.estado === 'Cancelada' ? 'cancelled' : 'warning'}`}>{cita.estado}</span>
                   {cita.estado === 'Confirmada' && (
                     <div className="appointment-actions">
+                      <button className="btn btn-primary btn-xs" type="button" onClick={() => { setFormConsulta(formConsultaVacio); setCitaEnConsulta(cita); }}>Cerrar cita</button>
                       <button className="btn btn-light" type="button" onClick={() => setCitaReagendando({ ...cita })}>Reagendar</button>
                       <button className="btn btn-danger-link" type="button" onClick={() => setCitaACancelar(cita)}>Cancelar</button>
                     </div>
@@ -562,6 +599,63 @@ export default function GestionCitas() {
             <div className="citas-modal-header"><h2 id="cancelar-cita-titulo">¿Cancelar cita?</h2><button type="button" aria-label="Cerrar" onClick={() => setCitaACancelar(null)}>&times;</button></div>
             <p>Se cancelará la cita de <strong>{citaACancelar.pacienteNombre}</strong> a las {citaACancelar.horaInicio}. Esta acción cambiará su estado a cancelada.</p>
             <div className="citas-modal-acciones"><button type="button" className="btn btn-light" onClick={() => setCitaACancelar(null)}>Volver</button><button type="button" className="btn btn-danger-link" onClick={() => cancelarCita(citaACancelar)}>Sí, cancelar cita</button></div>
+          </section>
+        </div>
+      )}
+
+      {citaEnConsulta && (
+        <div className="citas-modal" onClick={() => setCitaEnConsulta(null)}>
+          <form className="citas-modal-card consulta-modal" onSubmit={guardarConsulta} onClick={(evento) => evento.stopPropagation()}>
+            <div className="citas-modal-header">
+              <div>
+                <h2>Registrar consulta</h2>
+                <p>{citaEnConsulta.pacienteNombre} · {citaEnConsulta.horaInicio} · {nombreProfesional(citaEnConsulta)}</p>
+              </div>
+              <button type="button" aria-label="Cerrar" onClick={() => setCitaEnConsulta(null)}>&times;</button>
+            </div>
+            <label className="citas-campo">
+              Motivo de la consulta
+              <input type="text" required placeholder="Ej. Control de glaucoma" value={formConsulta.motivoConsulta} onChange={(evento) => setFormConsulta({ ...formConsulta, motivoConsulta: evento.target.value })} />
+            </label>
+            <label className="citas-campo">
+              Anamnesis
+              <textarea required placeholder="Antecedentes y síntomas del paciente" value={formConsulta.anamnesis} onChange={(evento) => setFormConsulta({ ...formConsulta, anamnesis: evento.target.value })} />
+            </label>
+            <label className="citas-campo">
+              Examen visual
+              <textarea placeholder="Resultados de la evaluación visual" value={formConsulta.examenVisual} onChange={(evento) => setFormConsulta({ ...formConsulta, examenVisual: evento.target.value })} />
+            </label>
+            <label className="citas-campo">
+              Diagnóstico
+              <input type="text" required placeholder="Ej. Miopía leve" value={formConsulta.diagnostico} onChange={(evento) => setFormConsulta({ ...formConsulta, diagnostico: evento.target.value })} />
+            </label>
+            <label className="citas-campo">
+              Observaciones
+              <textarea placeholder="Indicaciones o próximos controles" value={formConsulta.observaciones} onChange={(evento) => setFormConsulta({ ...formConsulta, observaciones: evento.target.value })} />
+            </label>
+            <div className="citas-modal-acciones">
+              <button type="button" className="btn btn-light" onClick={() => setCitaEnConsulta(null)}>Cancelar</button>
+              <button type="submit" className="btn btn-primary">Cerrar cita y registrar consulta</button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {consultaGuardada && (
+        <div className="citas-modal" onClick={() => setConsultaGuardada(null)}>
+          <section className="citas-modal-card" role="dialog" aria-modal="true" aria-labelledby="consulta-guardada-titulo" onClick={(evento) => evento.stopPropagation()}>
+            <div className="citas-modal-header">
+              <div>
+                <h2 id="consulta-guardada-titulo">Consulta registrada</h2>
+                <p>{consultaGuardada.pacienteNombre}</p>
+              </div>
+              <button type="button" aria-label="Cerrar" onClick={() => setConsultaGuardada(null)}>&times;</button>
+            </div>
+            <p>La consulta quedó registrada y la cita pasó a estado Atendida.</p>
+            <div className="citas-modal-acciones">
+              <button type="button" className="btn btn-light" onClick={() => setConsultaGuardada(null)}>Cerrar</button>
+              <button type="button" className="btn btn-primary" onClick={() => navigate(`/paciente/${consultaGuardada.pacienteId}`)}>Crear ficha del paciente</button>
+            </div>
           </section>
         </div>
       )}
