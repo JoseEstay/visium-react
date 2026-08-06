@@ -1,53 +1,50 @@
 import "./HeaderMenu.css";
-import { useTheme } from '../../context/ThemeContext';
+import { useTheme } from "../../context/useTheme";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
-
-const normalizarTexto = (valor = "") => valor
-  .normalize("NFD")
-  .replace(/[\u0300-\u036f]/g, "")
-  .toLowerCase()
-  .trim();
-
-const normalizarRut = (rut = "") => rut.replace(/[^0-9kK]/g, "").toLowerCase();
+import { apiFetch } from "../../utils/api";
+import { nombreCompleto } from "../../utils/formato";
 
 export default function HeaderMenu() {
-
-  const navigate= useNavigate();
+  const navigate = useNavigate();
   const [busqueda, setBusqueda] = useState("");
   const [pacientes, setPacientes] = useState([]);
   const usuario = JSON.parse(localStorage.getItem("usuarioActual") || "null");
 
   useEffect(() => {
     let activo = true;
-
-    fetch("/data/pacientes.json")
-      .then((response) => response.ok ? response.json() : [])
-      .then((data) => {
-        if (activo) setPacientes(Array.isArray(data) ? data : []);
+    const texto = busqueda.trim();
+    if (!texto) {
+      return undefined;
+    }
+    const control = new AbortController();
+    const espera = setTimeout(() => {
+      apiFetch(`/pacientes?page=0&size=6&texto=${encodeURIComponent(texto)}`, {
+        signal: control.signal,
       })
-      .catch(() => {
-        if (activo) setPacientes([]);
-      });
+        .then((datos) => {
+          if (activo) {
+            setPacientes(Array.isArray(datos?.content) ? datos.content : []);
+          }
+        })
+        .catch(() => {
+          if (activo) setPacientes([]);
+        });
+    }, 300);
+    return () => {
+      activo = false;
+      clearTimeout(espera);
+      control.abort();
+    };
+  }, [busqueda]);
 
-    return () => { activo = false; };
-  }, []);
-
-  const coincidencias = useMemo(() => {
-    const texto = normalizarTexto(busqueda);
-    const rut = normalizarRut(busqueda);
-    if (!texto) return [];
-
-    return pacientes
-      .filter((paciente) => normalizarTexto(paciente.nombre).includes(texto) || (rut && normalizarRut(paciente.rut).includes(rut)))
-      .slice(0, 6);
-  }, [busqueda, pacientes]);
+  const coincidencias = useMemo(() => (busqueda.trim() ? pacientes : []), [busqueda, pacientes]);
 
   const handleBack = () => {
     if (window.history.state && window.history.state.idx > 0) {
       navigate(-1);
     } else {
-      navigate("/Dashboard"); // límite seguro
+      navigate("/dashboard");
     }
   };
   const { theme, toggleTheme } = useTheme();
@@ -71,28 +68,28 @@ export default function HeaderMenu() {
               id="searchPatient"
               value={busqueda}
               onChange={(event) => setBusqueda(event.target.value)}
-              placeholder="Buscar paciente o RUT..."
+              placeholder="Buscar paciente o documento..."
               autoComplete="off"
-              aria-label="Buscar paciente por nombre o RUT"
+              aria-label="Buscar paciente por nombre o documento"
               aria-expanded={coincidencias.length > 0}
             />
           </div>
           {coincidencias.length > 0 && (
             <ul className="patient-results" role="listbox" aria-label="Pacientes encontrados">
               {coincidencias.map((paciente) => (
-                <li key={paciente.rut}>
+                <li key={paciente.id}>
                   <button
                     type="button"
                     onMouseDown={(event) => event.preventDefault()}
                     onClick={() => {
                       setBusqueda("");
-                      navigate(`/paciente/${paciente.rut}`);
+                      navigate(`/paciente/${paciente.id}`);
                     }}
                   >
-                    <img src={paciente.foto} alt="" />
+                    <i className="bi bi-person-circle"></i>
                     <span>
-                      <strong>{paciente.nombre}</strong>
-                      <small>{paciente.rut}</small>
+                      <strong>{nombreCompleto(paciente)}</strong>
+                      <small>{paciente.numeroDocumento}</small>
                     </span>
                   </button>
                 </li>
@@ -104,15 +101,23 @@ export default function HeaderMenu() {
 
       {/* 3. Acciones a la Derecha (Nuevo Paciente, Campana, Perfil) */}
       <div className="topbar-right">
-        <button className="btn-primary" onClick={() => navigate('/paciente')}>
-          <i className="bi bi-person-fill-add"></i> 
+        <button className="btn-primary" onClick={() => navigate("/paciente")}>
+          <i className="bi bi-person-fill-add"></i>
           <span className="btn-text">Nuevo Paciente</span>
         </button>
 
-        <button className="icon-btn theme-toggle" aria-label={theme === 'dark' ? 'Activar modo claro' : 'Activar modo oscuro'} onClick={toggleTheme}>
-          <i key={theme} className={`bi theme-toggle-icon ${theme === 'dark' ? 'bi-sun-fill' : 'bi-moon-stars-fill'}`} aria-hidden="true"></i>
+        <button
+          className="icon-btn theme-toggle"
+          aria-label={theme === "dark" ? "Activar modo claro" : "Activar modo oscuro"}
+          onClick={toggleTheme}
+        >
+          <i
+            key={theme}
+            className={`bi theme-toggle-icon ${theme === "dark" ? "bi-sun-fill" : "bi-moon-stars-fill"}`}
+            aria-hidden="true"
+          ></i>
         </button>
-       
+
         <div className="profile">
           <img src="https://i.pravatar.cc/100?img=12" alt="Usuario" />
           <span>{usuario?.nombre || "Usuario"}</span>

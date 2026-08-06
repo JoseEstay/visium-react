@@ -1,7 +1,13 @@
 import { useState } from 'react';
 import { useGestionPacientes } from './useGestionPacientes';
 import { useNavigate } from 'react-router-dom';
+import { apiFetch } from '../../utils/api';
 import './gestionPacientes.css';
+
+const SPH = (detalle) => detalle?.esfera ?? '—';
+const CYL = (detalle) => detalle?.cilindro ?? '—';
+const EJE = (detalle) => detalle?.eje ?? '—';
+const buscarDetalle = (receta, ojo) => (receta?.detalles || []).find((detalle) => detalle.ojo === ojo);
 
 export default function GestionPacientes() {
   const navigate = useNavigate();
@@ -15,21 +21,16 @@ export default function GestionPacientes() {
     startRecord, endRecord, handleOpenModal, handleFormSubmit, handleDeletePatient, handleReactivatePatient, handleContextMenu
   } = useGestionPacientes();
 
-  const abrirUltimaReceta = (paciente) => {
+  const abrirUltimaReceta = async (paciente) => {
     if (!paciente) return;
-    fetch('/data/recetas.json')
-      .then((respuesta) => respuesta.ok ? respuesta.json() : [])
-      .then((recetasBase) => {
-        let recetasGuardadas = [];
-        try { recetasGuardadas = JSON.parse(localStorage.getItem('visium.recetas') || '[]'); } catch { recetasGuardadas = []; }
-        const recetasPorId = new Map(recetasBase.map((receta) => [receta.id, receta]));
-        recetasGuardadas.forEach((receta) => recetasPorId.set(receta.id, receta));
-        const receta = [...recetasPorId.values()]
-          .filter((item) => item.pacienteRut === paciente.rut)
-          .sort((a, b) => String(b.fecha).localeCompare(String(a.fecha)))[0] || null;
-        setUltimaReceta({ paciente, receta });
-      })
-      .catch(() => setUltimaReceta({ paciente, receta: null }));
+    try {
+      const recetas = await apiFetch(`/recetas/paciente/${paciente.id}`);
+      const recetasOrdenadas = [...(Array.isArray(recetas) ? recetas : [])]
+        .sort((a, b) => String(b.fechaEmision || '').localeCompare(String(a.fechaEmision || '')));
+      setUltimaReceta({ paciente, receta: recetasOrdenadas[0] || null });
+    } catch {
+      setUltimaReceta({ paciente, receta: null });
+    }
   };
 
   return (
@@ -133,7 +134,7 @@ export default function GestionPacientes() {
                               <i className="bi bi-arrow-clockwise"></i> Reactivar
                             </button>
                           ) : <>
-                            <button className="recipe-btn" onClick={() => navigate(`/paciente/${p.rut}`)}>
+                            <button className="recipe-btn" onClick={() => navigate(`/paciente/${p.id}`)}>
                               <i className="bi bi-file-earmark-medical"></i> Crear Receta
                             </button>
                             <button className="menu-btn action-btn" onClick={(e) => handleContextMenu(e, globalIndex)} aria-label="Más opciones">
@@ -171,7 +172,7 @@ export default function GestionPacientes() {
       {contextMenu.visible && (
         <div className="context-menu show" style={{ left: contextMenu.x, top: contextMenu.y }}>
           <button onClick={() => abrirUltimaReceta(patients[contextMenu.patientIndex])}><i className="bi bi-file-earmark-medical"></i> Ver última receta</button>
-          <button onClick={() => navigate(`/recetas/historial/${patients[contextMenu.patientIndex]?.rut}`)}><i className="bi bi-folder2-open"></i> Ver recetas</button>
+          <button onClick={() => navigate(`/recetas/historial/${patients[contextMenu.patientIndex]?.id}`)}><i className="bi bi-folder2-open"></i> Ver recetas</button>
           <button onClick={() => handleOpenModal(contextMenu.patientIndex)}><i className="bi bi-person-gear"></i> Editar datos personales</button>
           <button onClick={() => handleDeletePatient(contextMenu.patientIndex)}><i className="bi bi-trash3"></i> Eliminar</button>
         </div>
@@ -233,17 +234,15 @@ export default function GestionPacientes() {
               <button type="button" onClick={() => setUltimaReceta(null)} aria-label="Cerrar">&times;</button>
             </div>
             {ultimaReceta.receta ? <div className="ultima-receta-contenido">
-              <p className="ultima-receta-fecha">{new Intl.DateTimeFormat('es-CL', { day: '2-digit', month: 'long', year: 'numeric' }).format(new Date(`${ultimaReceta.receta.fecha}T00:00:00`))}</p>
+              <p className="ultima-receta-fecha">{new Intl.DateTimeFormat('es-CL', { day: '2-digit', month: 'long', year: 'numeric' }).format(new Date(`${ultimaReceta.receta.fechaEmision}T00:00:00`))}</p>
               <dl>
-                <div><dt>Diagnóstico</dt><dd>{ultimaReceta.receta.diagnostico || 'Sin diagnóstico'}</dd></div>
-                <div><dt>Graduación</dt><dd>{ultimaReceta.receta.tipoVision === 'Ambos' ? 'Lejos/Cerca' : ultimaReceta.receta.tipoVision || 'Lejos'}</dd></div>
-                <div><dt>Material</dt><dd>{ultimaReceta.receta.materialSugerido || 'No especificado'}</dd></div>
+                <div><dt>Diagnóstico</dt><dd>{ultimaReceta.receta.indicaciones || 'Sin diagnóstico'}</dd></div>
                 <div><dt>Indicaciones</dt><dd>{ultimaReceta.receta.indicaciones || 'Sin indicaciones'}</dd></div>
               </dl>
               <div className="ultima-receta-valores">
-                <p><strong>OD</strong> SPH {ultimaReceta.receta.ojoDerecho?.esfera || '—'} · CYL {ultimaReceta.receta.ojoDerecho?.cilindro || '—'} · Eje {ultimaReceta.receta.ojoDerecho?.eje || '—'} · ADD {ultimaReceta.receta.ojoDerecho?.adicion || '—'}</p>
-                <p><strong>OI</strong> SPH {ultimaReceta.receta.ojoIzquierdo?.esfera || '—'} · CYL {ultimaReceta.receta.ojoIzquierdo?.cilindro || '—'} · Eje {ultimaReceta.receta.ojoIzquierdo?.eje || '—'} · ADD {ultimaReceta.receta.ojoIzquierdo?.adicion || '—'}</p>
-                <p><strong>DP</strong> Lejos {ultimaReceta.receta.distanciaPupilar?.lejos || '—'} mm · Cerca {ultimaReceta.receta.distanciaPupilar?.cerca || '—'} mm</p>
+                <p><strong>OD</strong> SPH {SPH(buscarDetalle(ultimaReceta.receta, 'OD'))} · CYL {CYL(buscarDetalle(ultimaReceta.receta, 'OD'))} · Eje {EJE(buscarDetalle(ultimaReceta.receta, 'OD'))} · ADD {ultimaReceta.receta.adicion ?? '—'}</p>
+                <p><strong>OI</strong> SPH {SPH(buscarDetalle(ultimaReceta.receta, 'OI'))} · CYL {CYL(buscarDetalle(ultimaReceta.receta, 'OI'))} · Eje {EJE(buscarDetalle(ultimaReceta.receta, 'OI'))} · ADD {ultimaReceta.receta.adicion ?? '—'}</p>
+                <p><strong>DP</strong> {ultimaReceta.receta.distanciaPupilar ?? '—'} mm</p>
               </div>
             </div> : <div className="ultima-receta-vacia"><i className="bi bi-file-earmark-text" /><p>Este paciente aún no tiene recetas registradas.</p></div>}
           </section>

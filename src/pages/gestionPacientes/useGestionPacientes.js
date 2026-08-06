@@ -1,12 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from "react";
+import { useFetch } from "../../hooks/useFetch";
+import { apiFetch, getEmpresaActivaId } from "../../utils/api";
 
-const PATIENTS_STORAGE_KEY = "visium.admin.pacientes";
-const CITAS_STORAGE_KEY = "visium.citas";
 const emptyPersonalData = {
   nombre: "",
   rut: "",
   fechaNacimiento: "",
-  sexo: "Femenino",
+  sexo: "",
   telefono: "",
   email: ""
 };
@@ -28,23 +28,21 @@ function calculateAge(fechaNacimiento, fallbackAge = "") {
 }
 
 function normalizePatient(patient) {
-  const ficha = patient.ficha ?? {};
   return {
     ...patient,
-    edad: calculateAge(patient.fechaNacimiento, patient.edad),
-    consulta: patient.ultimaConsulta ?? patient.consulta ?? "Sin consultas",
-    diagnostico: ficha.diagnostico ?? patient.diagnostico ?? "",
-    motivoConsulta: patient.motivoConsulta ?? ficha.motivoConsulta ?? "",
-    alergias: patient.alergias ?? (ficha.alergias ?? []).join(", "),
-    diabetes: patient.diabetes ?? (ficha.condicionesMedicas?.diabetes ? "Sí" : "No"),
-    hipertension: patient.hipertension ?? (ficha.condicionesMedicas?.hipertension ? "Sí" : "No"),
-    glaucoma: patient.glaucoma ?? (ficha.condicionesMedicas?.glaucoma ? "Sí" : "No"),
-    condicion: ficha.diagnostico ?? patient.diagnostico ?? patient.condicion ?? "Sin diagnóstico",
-    color: patient.color ?? "blue",
-    img: patient.foto ?? patient.img ?? "https://i.pravatar.cc/150?u=" + patient.rut,
-    fechaNacimiento: patient.fechaNacimiento ?? "",
+    id: patient.id,
+    nombre: `${patient.nombre || ""} ${patient.apellido || ""}`.trim() || "Paciente",
+    rut: patient.numeroDocumento || "",
+    edad: calculateAge(patient.fechaNacimiento),
+    sexo: patient.sexo ? patient.sexo.charAt(0) + patient.sexo.slice(1).toLowerCase() : "No informa",
     telefono: patient.telefono ?? "",
-    email: patient.email ?? ""
+    email: patient.email ?? "",
+    consulta: "—",
+    diagnostico: "Sin diagnóstico",
+    condicion: "Sin diagnóstico",
+    estado: patient.activo === false ? "Desactivado" : "Activo",
+    color: "blue",
+    img: "https://i.pravatar.cc/150?u=" + patient.id,
   };
 }
 
@@ -54,9 +52,6 @@ function fechaActualISO() {
 }
 
 export function useGestionPacientes() {
-  const [patients, setPatients] = useState([]);
-  const [citasHoy, setCitasHoy] = useState(0);
-
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [filterTab, setFilterTab] = useState("all");
@@ -65,55 +60,25 @@ export function useGestionPacientes() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingIndex, setEditingIndex] = useState(-1);
   const [formData, setFormData] = useState(emptyPersonalData);
+  const [saving, setSaving] = useState(false);
 
   const [contextMenu, setContextMenu] = useState({ visible: false, x: 0, y: 0, patientIndex: -1 });
   const rowsPerPage = 10;
 
-  // Fuente única: datos de pacientes y fichas. Se conserva en localStorage tras una edición.
-  useEffect(() => {
-    Promise.all([fetch("/data/pacientes.json"), fetch("/data/recetas.json")])
-      .then(async ([patientsResponse, recordsResponse]) => {
-        if (!patientsResponse.ok || !recordsResponse.ok) throw new Error("No se pudo cargar la información clínica");
-        const [patientData, recordData] = await Promise.all([patientsResponse.json(), recordsResponse.json()]);
-        const recordsByPatient = new Map(recordData.map((record) => [record.pacienteRut, record]));
-        let savedPatients = [];
-        try { savedPatients = JSON.parse(localStorage.getItem(PATIENTS_STORAGE_KEY) || "[]"); } catch (error) { console.error("Error leyendo pacientes guardados", error); }
-        const savedByRut = new Map(savedPatients.map((patient) => [patient.rut, patient]));
-        setPatients(patientData.map((patient) => {
-          const saved = savedByRut.get(patient.rut) || {};
-          // El archivo base conserva campos que no existían en versiones anteriores, como última consulta.
-          return normalizePatient({
-            ...patient,
-            ...saved,
-            // Conserva los datos válidos editados, pero repara datos antiguos vacíos desde el JSON base.
-            fechaNacimiento: saved.fechaNacimiento || patient.fechaNacimiento,
-            email: saved.email || patient.email,
-            ultimaConsulta: patient.ultimaConsulta,
-            ficha: recordsByPatient.get(patient.rut) ?? saved.ficha
-          });
-        }));
-      })
-      .catch((error) => console.error("Error cargando pacientes", error));
-  }, []);
+  const { data: pacientesApi, refresh: refrescarPacientes } = useFetch("/pacientes?page=0&size=200");
+  const { data: citasApi, refresh: refrescarCitas } = useFetch(`/citas?desde=${fechaActualISO()}&hasta=${fechaActualISO()}`);
 
-  useEffect(() => {
-    fetch("/data/citas.json", { cache: "no-store" })
-      .then((response) => response.ok ? response.json() : [])
-      .then((citasBase) => {
-        let citasGuardadas = [];
-        try { citasGuardadas = JSON.parse(localStorage.getItem(CITAS_STORAGE_KEY) || "[]"); } catch { citasGuardadas = []; }
-
-        const citasPorId = new Map(citasBase.map((cita) => [cita.id, cita]));
-        citasGuardadas.forEach((cita) => citasPorId.set(cita.id, cita));
-        const hoy = fechaActualISO();
-        setCitasHoy([...citasPorId.values()].filter((cita) => String(cita.fecha || "").slice(0, 10) === hoy).length);
-      })
-      .catch((error) => console.error("Error cargando citas", error));
-  }, []);
-
-  useEffect(() => {
-    if (patients.length) localStorage.setItem(PATIENTS_STORAGE_KEY, JSON.stringify(patients));
-  }, [patients]);
+  const patients = useMemo(
+    () =>
+      Array.isArray(pacientesApi?.content)
+        ? pacientesApi.content.map(normalizePatient)
+        : [],
+    [pacientesApi],
+  );
+  const citasHoy = useMemo(
+    () => (Array.isArray(citasApi) ? citasApi.length : 0),
+    [citasApi],
+  );
 
   // Cerrar menú contextual al hacer clic fuera
   useEffect(() => {
@@ -122,24 +87,23 @@ export function useGestionPacientes() {
     return () => document.removeEventListener("click", handleClickOutside);
   }, [contextMenu]);
 
-  // Lógica de filtrado
-  let filteredPatients = patients.filter(p => {
-    const matchSearch = p.nombre.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.rut.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.condicion.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchTab = filterTab === "all" ? true : p.estado !== "Desactivado";
-    return matchSearch && matchTab;
-  });
-
-  const collator = new Intl.Collator("es", { sensitivity: "base" });
   const apellido = (nombre = "") => nombre.trim().split(/\s+/).at(-1) || "";
   const [sortField, sortDirection] = sortOption.split("-");
-  filteredPatients = [...filteredPatients].sort((first, second) => {
-    const firstValue = sortField === "edad" ? Number(first.edad) || 0 : sortField === "apellido" ? apellido(first.nombre) : first.nombre;
-    const secondValue = sortField === "edad" ? Number(second.edad) || 0 : sortField === "apellido" ? apellido(second.nombre) : second.nombre;
-    const comparison = typeof firstValue === "number" ? firstValue - secondValue : collator.compare(firstValue, secondValue);
-    return sortDirection === "desc" ? -comparison : comparison;
-  });
+  const filteredPatients = useMemo(() => {
+    const collatorLocal = new Intl.Collator("es", { sensitivity: "base" });
+    const lista = patients.filter(p => {
+      const matchSearch = p.nombre.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        p.rut.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchTab = filterTab === "all" ? true : p.estado !== "Desactivado";
+      return matchSearch && matchTab;
+    });
+    return [...lista].sort((first, second) => {
+      const firstValue = sortField === "edad" ? Number(first.edad) || 0 : sortField === "apellido" ? apellido(first.nombre) : first.nombre;
+      const secondValue = sortField === "edad" ? Number(second.edad) || 0 : sortField === "apellido" ? apellido(second.nombre) : second.nombre;
+      const comparison = typeof firstValue === "number" ? firstValue - secondValue : collatorLocal.compare(firstValue, secondValue);
+      return sortDirection === "desc" ? -comparison : comparison;
+    });
+  }, [patients, searchQuery, filterTab, sortField, sortDirection]);
 
   // Lógica de Paginación
   const totalPages = Math.max(1, Math.ceil(filteredPatients.length / rowsPerPage));
@@ -168,42 +132,70 @@ export function useGestionPacientes() {
     setIsModalOpen(true);
   };
 
-  const handleFormSubmit = (e) => {
+  const handleFormSubmit = async (e) => {
     e.preventDefault();
-    let updatedPatients = [...patients];
-    if (editingIndex === -1) {
-      updatedPatients.push({
-        ...formData,
-        edad: calculateAge(formData.fechaNacimiento),
-        consulta: "",
-        condicion: "Sin diagnóstico",
-        color: "blue",
-        img: `https://i.pravatar.cc/150?u=${Date.now()}`
-      });
-    } else {
-      updatedPatients[editingIndex] = {
-        ...patients[editingIndex],
-        ...formData,
-        edad: calculateAge(formData.fechaNacimiento, patients[editingIndex].edad)
-      };
+    const paciente = editingIndex >= 0 ? patients[editingIndex] : null;
+    const cuerpo = {
+      empresaId: getEmpresaActivaId(),
+      numeroDocumento: formData.rut,
+      nombre: formData.nombre.split(" ")[0] || formData.nombre,
+      apellido: formData.nombre.split(" ").slice(1).join(" ") || "—",
+      fechaNacimiento: formData.fechaNacimiento || null,
+      sexo: formData.sexo ? formData.sexo.toUpperCase() : null,
+      telefono: formData.telefono,
+      email: formData.email,
+      activo: true,
+    };
+    setSaving(true);
+    try {
+      if (paciente) {
+        await apiFetch(`/pacientes/${paciente.id}`, { method: "PUT", body: JSON.stringify(cuerpo) });
+      } else {
+        await apiFetch("/pacientes", { method: "POST", body: JSON.stringify(cuerpo) });
+      }
+      refrescarPacientes();
+      setIsModalOpen(false);
+      setFormData(emptyPersonalData);
+    } catch (error) {
+      alert(error.message || "No se pudo guardar el paciente.");
+    } finally {
+      setSaving(false);
     }
-
-    setPatients(updatedPatients);
-    setIsModalOpen(false);
-    setFormData(emptyPersonalData);
   };
 
-  const handleDeletePatient = (index) => {
+  const handleDeletePatient = async (index) => {
     if (window.confirm("¿Desea eliminar este paciente?")) {
-      const updatedPatients = patients.filter((_, i) => i !== index);
-      setPatients(updatedPatients);
+      const paciente = patients[index];
+      try {
+        await apiFetch(`/pacientes/${paciente.id}`, { method: "DELETE" });
+        refrescarPacientes();
+      } catch (error) {
+        alert(error.message || "No se pudo eliminar el paciente.");
+      }
     }
   };
 
-  const handleReactivatePatient = (index) => {
-    setPatients((current) => current.map((patient, patientIndex) =>
-      patientIndex === index ? { ...patient, estado: "Activo" } : patient
-    ));
+  const handleReactivatePatient = async (index) => {
+    const paciente = patients[index];
+    try {
+      await apiFetch(`/pacientes/${paciente.id}`, {
+        method: "PUT",
+        body: JSON.stringify({
+          empresaId: getEmpresaActivaId(),
+          numeroDocumento: paciente.rut,
+          nombre: paciente.nombre.split(" ")[0],
+          apellido: paciente.nombre.split(" ").slice(1).join(" ") || "—",
+          fechaNacimiento: paciente.fechaNacimiento || null,
+          sexo: paciente.sexo ? paciente.sexo.toUpperCase() : null,
+          telefono: paciente.telefono,
+          email: paciente.email,
+          activo: true,
+        }),
+      });
+      refrescarPacientes();
+    } catch (error) {
+      alert(error.message || "No se pudo reactivar el paciente.");
+    }
   };
 
   const handleContextMenu = (e, index) => {
@@ -239,11 +231,17 @@ export function useGestionPacientes() {
     });
   };
 
+  const refrescar = useCallback(() => {
+    refrescarPacientes();
+    refrescarCitas();
+  }, [refrescarPacientes, refrescarCitas]);
+
   // Retornamos todo lo que la interfaz (JSX) va a necesitar
   return {
     patients, citasHoy, searchQuery, setSearchQuery, currentPage, setCurrentPage,
     filterTab, setFilterTab, sortOption, setSortOption, isModalOpen, setIsModalOpen, formData, setFormData,
     contextMenu, editingIndex, filteredPatients, currentPatients, totalPages,
-    startRecord, endRecord, handleOpenModal, handleFormSubmit, handleDeletePatient, handleReactivatePatient, handleContextMenu
+    startRecord, endRecord, handleOpenModal, handleFormSubmit, handleDeletePatient, handleReactivatePatient, handleContextMenu,
+    saving, refrescar
   };
 }

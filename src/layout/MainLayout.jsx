@@ -1,4 +1,3 @@
-import Footer from "../components/Footer/Footer";
 import MenuLateral from "../components/MenuLateral/MenuLateral";
 import { Outlet } from "react-router-dom";
 import "./MainLayout.css"; // Importa los estilos del layout

@@ -20,8 +20,8 @@ export default function SolicitudDemo() {
 
   const enviarSolicitud = async (event) => {
     event.preventDefault();
-    let base = [];
-    let guardadas = [];
+    let base;
+    let guardadas;
 
     try { base = await fetch("/data/solicitudes-demo.json").then((response) => response.ok ? response.json() : []); } catch { base = []; }
     try { guardadas = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]"); } catch { guardadas = []; }

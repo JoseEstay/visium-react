@@ -1,4 +1,30 @@
 # Changelog
+## 2026-08-06
+
+### Añadido
+- El frontend ahora consume la API real del backend (Spring Boot) en lugar de los datos simulados de `/data/*.json` y `localStorage`: `apiFetch` envía `X-Empresa-Id`, muestra los mensajes de error del backend y redirige a `/login` ante sesión expirada (401).
+- Nuevo hook `useFetch` con `refresh`, cancelación de peticiones y dependencias estables.
+- Página de cambio de contraseña propia conectada a `PUT /auth/me/password`.
+- Recuperación de contraseña conectada a `POST /auth/password-recovery` y `/confirm`.
+- Descarga de recetas en PDF desde el historial (`GET /recetas/{id}/pdf`).
+
+### Modificado
+- Login autentica contra `POST /auth/login` y guarda token, usuario y empresa activa.
+- Dashboard y Gestión de Citas leen citas reales (`GET /citas`) y las confirman/cancelan/reagendan vía API.
+- Gestión de Pacientes y Nuevo Paciente usan `GET/POST/PUT/DELETE /pacientes`; la última receta se obtiene de `GET /recetas/paciente/{id}`.
+- Emisión de recetas conectada a `POST /recetas` (requiere una consulta previa del paciente); el historial se lee desde la API.
+- Gestión Administrativa lista los registros reales de la empresa activa (usuarios, profesionales, recepcionistas, sucursales, empresas, citas y pacientes); la eliminación de pacientes usa `DELETE /pacientes/{id}`.
+- El buscador del encabezado consulta `GET /pacientes?texto=...` y navega por id de paciente.
+- Las rutas de recetas e historial usan el id (UUID) del paciente en lugar del RUT.
+- `useTheme` se separó a `context/useTheme.js` y el contexto a `context/ThemeContext.js` para dejar el lint del proyecto limpio.
+- En el login, si el backend no devuelve `empresaActivaId` (usuario con varias empresas), se usa la primera de `empresaIds` para poder enviar el header `X-Empresa-Id` en todas las peticiones.
+
+### Corregido
+- Cierre de sesión automático al entrar a Gestión de Citas: el backend devolvía 401 como artefacto del manejo de errores de `/pacientes`, `/profesionales` y `/sucursales`; esos endpoints ahora responden correctamente (200/400) y el frontend ya no interpreta esos errores como sesión expirada.
+
+### Eliminado
+- Dependencias de los archivos simulados `/data/*.json` y claves `visium.*` de `localStorage` en las páginas migradas (persistencia mock de citas, pacientes, recetas y usuarios).
+
 ## 2026-07-31
 
 ### Añadido

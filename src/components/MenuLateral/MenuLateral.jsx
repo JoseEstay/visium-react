@@ -8,9 +8,12 @@ const navigationItems = [
   { to: "/gestionPacientes", icon: "bi-people-fill", label: "Pacientes" },
   { to: "/citas", icon: "bi-calendar-event", label: "Citas" },
   // Métricas reutiliza temporalmente el dashboard, por lo que no debe duplicar su estado activo.
-  { to: "/dashboard", icon: "bi-graph-up", label: "Métricas", matchActive: false, roles: ["administrador sucursales", "administrador sucursal", "jefe"] },
+  { to: "/dashboard", icon: "bi-graph-up", label: "Métricas", matchActive: false, roles: ["JEFE", "JEFE_SUCURSAL", "SUPER_ADMIN"] },
   { to: "/paciente", icon: "bi-file-earmark-text", label: "Ficha" },
 ];
+
+const ROLES_ALTA_GESTION = ["JEFE", "SUPER_ADMIN"];
+const ROLES_GESTION_SUCURSAL = ["JEFE_SUCURSAL"];
 
 export default function MenuLateral() {
   const navigate = useNavigate();
@@ -21,10 +24,11 @@ export default function MenuLateral() {
   const metricsClickCount = useRef(0);
   const metricsClickTimer = useRef(null);
   const user = JSON.parse(localStorage.getItem("usuarioActual") || "null");
-  const canUnlockMetrics = ["administrador sucursales", "administrador sucursal", "jefe"].includes(user?.rol);
-  const adminItems = ["administrador sucursales", "jefe"].includes(user?.rol)
-    ? ["usuarios", "sucursales", "administradores", "profesionales", "recepcionistas", "citas", "pacientes"]
-    : user?.rol === "administrador sucursal"
+  const userRoles = user?.roles || [];
+  const canUnlockMetrics = [...ROLES_ALTA_GESTION, ...ROLES_GESTION_SUCURSAL].some((rol) => userRoles.includes(rol));
+  const adminItems = ROLES_ALTA_GESTION.some((rol) => userRoles.includes(rol))
+    ? ["usuarios", "sucursales", "profesionales", "recepcionistas", "citas", "pacientes"]
+    : ROLES_GESTION_SUCURSAL.some((rol) => userRoles.includes(rol))
       ? ["profesionales", "recepcionistas", "citas", "pacientes"]
       : [];
 
@@ -32,8 +36,10 @@ export default function MenuLateral() {
   const closeMenu = () => setIsOpen(false);
   const handleLogout = (event) => {
     event.preventDefault();
+    localStorage.removeItem("token");
     localStorage.removeItem("sesionIniciada");
     localStorage.removeItem("usuarioActual");
+    localStorage.removeItem("empresaActivaId");
     closeMenu();
     navigate("/login", { replace: true });
   };

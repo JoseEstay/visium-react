@@ -1,8 +1,17 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
+import { useFetch } from "../../hooks/useFetch";
+import { apiFetch } from "../../utils/api";
+import { aInstantISO, fechaDeInstant, fechaISO, horaDeInstant, nombreCompleto } from "../../utils/formato";
 import "./Dashboard.css";
 
-const CITAS_KEY = "visium.citas";
+const MAPA_ESTADOS = {
+  PENDIENTE: "Pendiente",
+  CONFIRMADA: "Confirmada",
+  CANCELADA: "Cancelada",
+  ATENDIDA: "Atendida",
+  NO_ASISTIO: "No asistió",
+};
 
 function sumarMediaHora(hora = "00:00") {
   const [horas, minutos] = hora.split(":").map(Number);
@@ -11,16 +20,15 @@ function sumarMediaHora(hora = "00:00") {
 }
 
 function normalizarCita(cita) {
-  const [fecha = "", hora = ""] = (cita.fecha || "").split(" ");
-  const horaInicio = (cita.horaInicio || hora || "00:00").replace(/:15$/, ":30").replace(/^(\d{2}):45$/, (_, horaBase) => `${String(Number(horaBase) + 1).padStart(2, "0")}:00`);
+  const horaInicio = horaDeInstant(cita.fechaHoraInicio);
   return {
     ...cita,
-    fecha: fecha || cita.fecha,
+    fecha: fechaDeInstant(cita.fechaHoraInicio),
     hora: horaInicio,
-    horaFin: cita.horaFin || sumarMediaHora(horaInicio),
-    motivo: cita.motivo || cita.motivoConsulta || "Consulta visual",
-    pacienteNombre: cita.pacienteNombre || cita.paciente || "Paciente",
-    estado: cita.estado === "Programada" ? "Reagendada" : cita.estado === "En espera" ? "Pendiente" : cita.estado,
+    horaFin: horaDeInstant(cita.fechaHoraFin) || sumarMediaHora(horaInicio),
+    motivo: cita.motivo || "Consulta visual",
+    pacienteNombre: nombreCompleto(cita),
+    estado: MAPA_ESTADOS[cita.estado] || cita.estado,
   };
 }
 
@@ -30,45 +38,27 @@ function claseEstado(estado = "") {
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const [citas, setCitas] = useState([]);
   const [ahora, setAhora] = useState(() => new Date());
-  const [nombreOptica, setNombreOptica] = useState('Visium');
+  const haceUnDia = fechaISO(new Date(ahora.getTime() - 86400000));
+  const enUnMes = fechaISO(new Date(ahora.getTime() + 30 * 86400000));
+
+  const { data: citasApi, loading, error, refresh } = useFetch(
+    `/citas?desde=${haceUnDia}&hasta=${enUnMes}`,
+  );
+
+  const citas = useMemo(
+    () => (Array.isArray(citasApi) ? citasApi.map(normalizarCita) : []),
+    [citasApi],
+  );
 
   useEffect(() => {
     const intervalo = window.setInterval(() => setAhora(new Date()), 60_000);
     return () => window.clearInterval(intervalo);
   }, []);
 
-  useEffect(() => {
-    let usuario = null;
-    try { usuario = JSON.parse(localStorage.getItem('usuarioActual') || 'null'); } catch { usuario = null; }
-    if (usuario?.optica || usuario?.sucursal) {
-      setNombreOptica(usuario.optica || usuario.sucursal);
-      return;
-    }
-    if (!usuario?.sucursalId) return;
-
-    fetch('/data/sucursales.json')
-      .then((response) => response.ok ? response.json() : [])
-      .then((sucursales) => setNombreOptica(sucursales.find((sucursal) => sucursal.id === usuario.sucursalId)?.nombre || 'Visium'))
-      .catch(() => setNombreOptica('Visium'));
-  }, []);
-
-  useEffect(() => {
-    fetch("/data/citas.json")
-      .then((response) => response.ok ? response.json() : [])
-      .then((base) => {
-        let guardadas = [];
-        try { guardadas = JSON.parse(localStorage.getItem(CITAS_KEY) || "[]"); } catch { guardadas = []; }
-        const porId = new Map(base.map((cita) => [cita.id, normalizarCita(cita)]));
-        guardadas.forEach((cita) => porId.set(cita.id, normalizarCita(cita)));
-        setCitas([...porId.values()].sort((a, b) => `${a.fecha} ${a.hora}`.localeCompare(`${b.fecha} ${b.hora}`)));
-      })
-      .catch(() => setCitas([]));
-  }, []);
-
   const fechaHoy = `${ahora.getFullYear()}-${String(ahora.getMonth() + 1).padStart(2, '0')}-${String(ahora.getDate()).padStart(2, '0')}`;
   const horaActual = `${String(ahora.getHours()).padStart(2, '0')}:${String(ahora.getMinutes()).padStart(2, '0')}`;
+  const nombreOptica = citas[0]?.sucursalNombre || 'Visium';
   const citasDeHoy = useMemo(() => citas.filter((cita) => cita.fecha === fechaHoy), [citas, fechaHoy]);
   const proximasCitas = useMemo(() => {
     const candidatas = citas.filter((cita) =>
@@ -89,23 +79,40 @@ export default function Dashboard() {
   const fechaTitulo = new Intl.DateTimeFormat("es-CL", {
     weekday: "long", day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit", hour12: false,
   }).format(ahora);
-  const textoPendientes = `${pendientes} cita${pendientes === 1 ? "" : "s"} pendiente${pendientes === 1 ? "" : "s"}`;
+  const textoPendientes = loading
+    ? "cargando agenda..."
+    : `${pendientes} cita${pendientes === 1 ? "" : "s"} pendiente${pendientes === 1 ? "" : "s"}`;
   const citaNoConfirmada = citaEnCurso && citaEnCurso.estado !== "Confirmada";
 
   const abrirFichaCita = () => {
     if (!citaEnCurso) return;
-    navigate(`/paciente/${citaEnCurso.pacienteRut}`);
+    navigate(`/paciente/${citaEnCurso.pacienteId}`);
   };
 
-  const cancelarCita = () => {
+  const cancelarCita = async () => {
     if (!citaEnCurso) return;
-    const actualizadas = citas.map((cita) => cita.id === citaEnCurso.id ? { ...cita, estado: "Cancelada" } : cita);
-    setCitas(actualizadas);
-    localStorage.setItem(CITAS_KEY, JSON.stringify(actualizadas));
+    try {
+      await apiFetch(`/citas/${citaEnCurso.id}`, {
+        method: "PUT",
+        body: JSON.stringify({
+          empresaId: citaEnCurso.empresaId,
+          sucursalId: citaEnCurso.sucursalId,
+          pacienteId: citaEnCurso.pacienteId,
+          profesionalId: citaEnCurso.profesionalId,
+          fechaHoraInicio: aInstantISO(citaEnCurso.fecha, citaEnCurso.hora),
+          fechaHoraFin: citaEnCurso.fechaHoraFin,
+          estado: "CANCELADA",
+        }),
+      });
+      refresh();
+    } catch (err) {
+      alert(err.message || "No se pudo cancelar la cita.");
+    }
   };
 
   return (
     <main className="main-content">
+      {error && <p className="consulta-tipo" role="alert">No se pudo cargar la agenda: {error.message}</p>}
       <section className="Saludo">
         <div className="SaludoDoctor">
           <h1>{nombreOptica}</h1>
@@ -141,7 +148,7 @@ export default function Dashboard() {
           <table className="tabla-agenda">
             <thead><tr><th>HORA</th><th>PACIENTE</th><th>MOTIVO DE CONSULTA</th><th>ESTADO</th></tr></thead>
             <tbody>
-              {proximasCitas.length ? proximasCitas.slice(0, 4).map((cita) => <tr key={cita.id}><td className="col-hora">{cita.hora}</td><td className="col-paciente">{cita.pacienteNombre}</td><td className="col-motivo">{cita.motivo}</td><td><span className={`badge-status ${claseEstado(cita.estado)}`}>{cita.estado}</span></td></tr>) : <tr><td colSpan="4">No hay próximas citas programadas.</td></tr>}
+              {loading ? <tr><td colSpan="4">Cargando citas...</td></tr> : proximasCitas.length ? proximasCitas.slice(0, 4).map((cita) => <tr key={cita.id}><td className="col-hora">{cita.hora}</td><td className="col-paciente">{cita.pacienteNombre}</td><td className="col-motivo">{cita.motivo}</td><td><span className={`badge-status ${claseEstado(cita.estado)}`}>{cita.estado}</span></td></tr>) : <tr><td colSpan="4">No hay próximas citas programadas.</td></tr>}
             </tbody>
           </table>
         </div>

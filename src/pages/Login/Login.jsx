@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 
 import "./Login.css";
 import { Link, useNavigate } from "react-router";
+import { apiFetch, setEmpresaActivaId } from "../../utils/api";
 
 function Login() {
   const [medico, setMedico] = useState("");
@@ -9,6 +10,10 @@ function Login() {
   const [password, setPassword] = useState("");
 
   const [mostrarPassword, setMostrarPassword] = useState(false);
+
+  const [error, setError] = useState("");
+
+  const [enviando, setEnviando] = useState(false);
 
   const [theme, setTheme] = useState(() => localStorage.getItem("theme") || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"));
 
@@ -19,17 +24,25 @@ function Login() {
     localStorage.setItem("theme", theme);
   }, [theme]);
 
-  const logueado = (e) => {
+  const logueado = async (e) => {
     e.preventDefault();
-    const storedUsers = localStorage.getItem("visium.usuarios");
-    (storedUsers ? Promise.resolve(JSON.parse(storedUsers)) : fetch("/data/usuarios.json").then((response) => response.json()))
-      .then((usuarios) => {
-        const usuario = usuarios.find((item) => item.email === medico && item.password === password);
-        if (!usuario) { alert("Datos incorrectos"); return; }
-        localStorage.setItem("sesionIniciada", "true");
-        localStorage.setItem("usuarioActual", JSON.stringify(usuario));
-        navigate("/dashboard");
+    setError("");
+    setEnviando(true);
+    try {
+      const respuesta = await apiFetch("/auth/login", {
+        method: "POST",
+        body: JSON.stringify({ email: medico, password }),
       });
+      localStorage.setItem("token", respuesta.token);
+      localStorage.setItem("sesionIniciada", "true");
+      localStorage.setItem("usuarioActual", JSON.stringify(respuesta));
+      setEmpresaActivaId(respuesta.empresaActivaId || respuesta.empresaIds?.[0] || null);
+      navigate("/dashboard");
+    } catch (err) {
+      setError(err.message || "No se pudo iniciar sesión.");
+    } finally {
+      setEnviando(false);
+    }
   };
 
   return (
@@ -165,10 +178,13 @@ function Login() {
                 justify-content-center
                 gap-2
                 "
+                disabled={enviando}
               >
-                Iniciar Sesión
+                {enviando ? "Ingresando..." : "Iniciar Sesión"}
                 <i className="bi bi-box-arrow-in-right"></i>
               </button>
+
+              {error && <p className="login-error" role="alert">{error}</p>}
             </form>
 
             <div className="bottom-row">
