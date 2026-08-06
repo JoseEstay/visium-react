@@ -1,22 +1,27 @@
 import { useEffect, useRef, useState } from 'react';
 import agendarIcon from '../../assets/img/agendar.svg';
-import configIcon from '../../assets/img/config.svg';
 import masIcon from '../../assets/img/mas.svg';
 import resumenBackground from '../../assets/img/resumen-dia-background.svg';
-import seguimientoIcon from '../../assets/img/seguimiento.svg';
 import userIcon from '../../assets/img/user.svg';
+import { useFetch } from '../../hooks/useFetch';
+import { apiFetch, getEmpresaActivaId } from '../../utils/api';
+import { aInstantISO, fechaDeInstant, fechaISO, horaDeInstant, nombreCompleto } from '../../utils/formato';
 import './GestionCitas.css';
 
-const PATIENTS_KEY = 'visium.admin.pacientes';
-const CITAS_KEY = 'visium.citas';
-const CITAS_DATA_VERSION = '2026-07-31-31-high-density';
-const FECHA_DEMO = '2026-07-29';
 const HORAS_REAGENDAMIENTO = Array.from({ length: 23 }, (_, indice) => {
   const hora = 9 + Math.floor(indice / 2);
   return `${String(hora).padStart(2, '0')}:${indice % 2 ? '30' : '00'}`;
 });
 
-const formVacio = { rut: '', profesional: '', fecha: FECHA_DEMO, horaInicio: '14:00', horaFin: '14:30', motivo: '' };
+const MAPA_ESTADOS = {
+  PENDIENTE: 'Pendiente',
+  CONFIRMADA: 'Confirmada',
+  CANCELADA: 'Cancelada',
+  ATENDIDA: 'Atendida',
+  NO_ASISTIO: 'No asistió',
+};
+
+const formVacio = { pacienteId: '', profesionalId: '', fecha: fechaISO(), horaInicio: '14:00', horaFin: '14:30', motivo: '' };
 
 function fechaHoraActualTexto(fecha) {
   const fechaFormateada = new Intl.DateTimeFormat('es-CL', {
@@ -28,39 +33,29 @@ function fechaHoraActualTexto(fecha) {
   return `${fechaFormateada} · ${horaFormateada}`;
 }
 
-function fechaISO(fecha) {
-  return `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}-${String(fecha.getDate()).padStart(2, '0')}`;
-}
-
 function sumarMediaHora(horaInicio) {
   const [hora, minutos] = horaInicio.split(':').map(Number);
   return `${String(hora + Math.floor((minutos + 30) / 60)).padStart(2, '0')}:${String((minutos + 30) % 60).padStart(2, '0')}`;
 }
 
 function normalizarRutBusqueda(rut = '') {
-  return rut.replace(/[.\s-]/g, '').toLowerCase();
+  return String(rut || '').replace(/[.\s-]/g, '').toLowerCase();
 }
 
 function fechaDeCita(fecha = '') {
   return String(fecha).trim().slice(0, 10);
 }
 
-function normalizarHoraMedia(hora = '') {
-  if (/:15$/.test(hora)) return hora.replace(/:15$/, ':30');
-  return hora.replace(/^(\d{2}):45$/, (_, horaBase) => `${String(Number(horaBase) + 1).padStart(2, '0')}:00`);
-}
-
 function normalizarCita(cita) {
-  const [fecha = '', hora = ''] = (cita.fecha || '').split(' ');
-  const horaInicio = normalizarHoraMedia(cita.horaInicio || hora || '09:00');
+  const horaInicio = horaDeInstant(cita.fechaHoraInicio);
   return {
     ...cita,
-    fecha: fecha || cita.fecha,
+    fecha: fechaDeInstant(cita.fechaHoraInicio),
     horaInicio,
-    horaFin: normalizarHoraMedia(cita.horaFin || sumarMediaHora(horaInicio)),
-    pacienteNombre: cita.pacienteNombre || cita.paciente || 'Paciente',
-    motivo: cita.motivo || cita.motivoConsulta || 'Consulta visual',
-    estado: cita.estado === 'Programada' ? 'Reagendada' : cita.estado === 'En espera' ? 'Pendiente' : cita.estado,
+    horaFin: horaDeInstant(cita.fechaHoraFin) || sumarMediaHora(horaInicio),
+    pacienteNombre: nombreCompleto(cita),
+    motivo: cita.motivo || 'Consulta visual',
+    estado: MAPA_ESTADOS[cita.estado] || cita.estado,
   };
 }
 
@@ -72,21 +67,24 @@ export default function GestionCitas() {
   const [citaAReemplazar, setCitaAReemplazar] = useState(null);
   const [citaReagendando, setCitaReagendando] = useState(null);
   const [citaACancelar, setCitaACancelar] = useState(null);
-  const [pacientes, setPacientes] = useState([]);
-  const [profesionales, setProfesionales] = useState([]);
   const [busquedaPaciente, setBusquedaPaciente] = useState('');
   const [busquedaProfesional, setBusquedaProfesional] = useState('');
   const [form, setForm] = useState(formVacio);
   const [fechaActual, setFechaActual] = useState(() => new Date());
   const [vistaAgenda, setVistaAgenda] = useState('Día');
   const [fechaSeleccionada, setFechaSeleccionada] = useState(() => fechaISO(new Date()));
-  const [citas, setCitas] = useState(() => {
-    try {
-      return JSON.parse(localStorage.getItem(CITAS_KEY) || '[]').map(normalizarCita);
-    } catch {
-      return [];
-    }
-  });
+
+  const hoy = new Date();
+  const rangoInicio = fechaISO(new Date(hoy.getTime() - 7 * 86400000));
+  const rangoFin = fechaISO(new Date(hoy.getTime() + 120 * 86400000));
+
+  const { data: pacientesApi } = useFetch('/pacientes?page=0&size=200');
+  const { data: profesionalesApi } = useFetch('/profesionales');
+  const { data: citasApi, refresh: refrescarCitas } = useFetch(`/citas?desde=${rangoInicio}&hasta=${rangoFin}`);
+
+  const pacientes = Array.isArray(pacientesApi?.content) ? pacientesApi.content : [];
+  const profesionales = Array.isArray(profesionalesApi) ? profesionalesApi : [];
+  const citas = (Array.isArray(citasApi) ? citasApi : []).map(normalizarCita);
 
   const fecha = new Date(`${fechaSeleccionada}T00:00:00`);
   const anio = fecha.getFullYear();
@@ -153,45 +151,9 @@ export default function GestionCitas() {
   }, [fechaSeleccionada, vistaAgenda]);
 
   useEffect(() => {
-    fetch('/data/pacientes.json')
-      .then((respuesta) => respuesta.json())
-      .then((base) => {
-        let guardados = [];
-        try {
-          guardados = JSON.parse(localStorage.getItem(PATIENTS_KEY) || '[]');
-        } catch {
-          guardados = [];
-        }
-        const porRut = new Map(base.map((paciente) => [paciente.rut, paciente]));
-        guardados.forEach((paciente) => {
-          if (paciente?.rut) porRut.set(paciente.rut, { ...porRut.get(paciente.rut), ...paciente });
-        });
-        setPacientes([...porRut.values()]);
-      })
-      .catch((error) => console.error('Error cargando pacientes', error));
-  }, []);
-
-  useEffect(() => {
-    fetch('/data/profesionales.json').then((respuesta) => respuesta.ok ? respuesta.json() : []).then(setProfesionales).catch(() => setProfesionales([]));
-  }, []);
-
-  useEffect(() => {
     const intervalo = window.setInterval(() => setFechaActual(new Date()), 60_000);
     return () => window.clearInterval(intervalo);
   }, []);
-
-  useEffect(() => {
-    fetch(`/data/citas.json?v=${CITAS_DATA_VERSION}`, { cache: 'no-store' })
-      .then((respuesta) => respuesta.ok ? respuesta.json() : [])
-      .then((base) => {
-        let guardadas = [];
-        try { guardadas = JSON.parse(localStorage.getItem(CITAS_KEY) || '[]'); } catch { guardadas = []; }
-        const porId = new Map(base.map((cita) => [cita.id, normalizarCita(cita)]));
-        guardadas.forEach((cita) => porId.set(cita.id, normalizarCita(cita)));
-        setCitas([...porId.values()]);
-      })
-      .catch((error) => console.error('Error cargando citas', error));
-  }, [CITAS_DATA_VERSION]);
 
   const abrirAgenda = (horaInicio = '14:00') => {
     setCitaAReemplazar(null);
@@ -205,8 +167,8 @@ export default function GestionCitas() {
     setCitaAReemplazar(cita);
     setForm({
       ...formVacio,
-      rut: cita.pacienteRut,
-      profesional: cita.profesional,
+      pacienteId: cita.pacienteId,
+      profesionalId: cita.profesionalId,
       fecha: fechaDeCita(cita.fecha),
       horaInicio: cita.horaInicio,
       horaFin: cita.horaFin,
@@ -217,10 +179,45 @@ export default function GestionCitas() {
     setMostrarAgenda(true);
   };
 
-  const cambiarEstadoCita = (id, estado) => {
-    const actualizadas = citas.map((cita) => cita.id === id ? { ...cita, estado } : cita);
-    localStorage.setItem(CITAS_KEY, JSON.stringify(actualizadas));
-    setCitas(actualizadas);
+  const confirmarCita = async (cita) => {
+    try {
+      await apiFetch(`/citas/${cita.id}`, {
+        method: 'PUT',
+        body: JSON.stringify({
+          empresaId: cita.empresaId,
+          sucursalId: cita.sucursalId,
+          pacienteId: cita.pacienteId,
+          profesionalId: cita.profesionalId,
+          fechaHoraInicio: cita.fechaHoraInicio,
+          fechaHoraFin: cita.fechaHoraFin,
+          estado: 'CONFIRMADA',
+        }),
+      });
+      refrescarCitas();
+    } catch (err) {
+      alert(err.message || 'No se pudo confirmar la cita.');
+    }
+  };
+
+  const cancelarCita = async (cita) => {
+    try {
+      await apiFetch(`/citas/${cita.id}`, {
+        method: 'PUT',
+        body: JSON.stringify({
+          empresaId: cita.empresaId,
+          sucursalId: cita.sucursalId,
+          pacienteId: cita.pacienteId,
+          profesionalId: cita.profesionalId,
+          fechaHoraInicio: cita.fechaHoraInicio,
+          fechaHoraFin: cita.fechaHoraFin,
+          estado: 'CANCELADA',
+        }),
+      });
+      setCitaACancelar(null);
+      refrescarCitas();
+    } catch (err) {
+      alert(err.message || 'No se pudo cancelar la cita.');
+    }
   };
 
   const horarioDisponible = (fechaCita, horaInicio, citaId) => {
@@ -228,22 +225,33 @@ export default function GestionCitas() {
     return !citas.some((cita) => cita.id !== citaId && cita.fecha === fechaCita && horaInicio < cita.horaFin && horaFin > cita.horaInicio);
   };
 
-  const guardarReagendamiento = (evento) => {
+  const guardarReagendamiento = async (evento) => {
     evento.preventDefault();
     if (!citaReagendando || !horarioDisponible(citaReagendando.fecha, citaReagendando.horaInicio, citaReagendando.id)) return;
-    const actualizadas = citas.map((cita) => cita.id === citaReagendando.id
-      ? { ...cita, fecha: citaReagendando.fecha, horaInicio: citaReagendando.horaInicio, horaFin: sumarMediaHora(citaReagendando.horaInicio), estado: 'Reagendada' }
-      : cita);
-    localStorage.setItem(CITAS_KEY, JSON.stringify(actualizadas));
-    setCitas(actualizadas);
-    setFechaSeleccionada(citaReagendando.fecha);
-    setCitaReagendando(null);
+    try {
+      await apiFetch(`/citas/${citaReagendando.id}`, {
+        method: 'PUT',
+        body: JSON.stringify({
+          empresaId: citaReagendando.empresaId,
+          sucursalId: citaReagendando.sucursalId,
+          pacienteId: citaReagendando.pacienteId,
+          profesionalId: citaReagendando.profesionalId,
+          fechaHoraInicio: aInstantISO(citaReagendando.fecha, citaReagendando.horaInicio),
+          fechaHoraFin: aInstantISO(citaReagendando.fecha, sumarMediaHora(citaReagendando.horaInicio)),
+          motivo: citaReagendando.motivo,
+        }),
+      });
+      setFechaSeleccionada(citaReagendando.fecha);
+      setCitaReagendando(null);
+      refrescarCitas();
+    } catch (err) {
+      alert(err.message || 'No se pudo reagendar la cita.');
+    }
   };
 
-  const guardarCita = (evento) => {
+  const guardarCita = async (evento) => {
     evento.preventDefault();
-    const paciente = pacientes.find((item) => item.rut === form.rut);
-    if (!paciente) return;
+    if (!form.pacienteId || !form.profesionalId) return;
 
     if (form.horaFin <= form.horaInicio) {
       alert('La hora de término debe ser posterior a la hora de inicio.');
@@ -260,28 +268,41 @@ export default function GestionCitas() {
     }
 
     const usuario = JSON.parse(localStorage.getItem('usuarioActual') || '{}');
-    const nuevaCita = {
-      id: citaAReemplazar?.id || `C-${Date.now()}`,
-      pacienteRut: paciente.rut,
-      pacienteNombre: paciente.nombre,
-      profesional: form.profesional || usuario.nombre || 'Profesional por asignar',
-      sucursal: paciente.sucursal,
-      horaInicio: form.horaInicio,
-      horaFin: form.horaFin,
-      motivo: form.motivo.trim(),
-      fecha: form.fecha,
-      estado: 'Pendiente',
-    };
-    const actualizadas = citaAReemplazar
-      ? citas.map((cita) => cita.id === citaAReemplazar.id ? nuevaCita : cita)
-      : [...citas, nuevaCita];
-    localStorage.setItem(CITAS_KEY, JSON.stringify(actualizadas));
-    setCitas(actualizadas);
-    setFechaSeleccionada(form.fecha);
-    setMostrarAgenda(false);
-    setCitaAReemplazar(null);
-    setForm(formVacio);
+    const sucursalId = citaAReemplazar?.sucursalId || usuario?.sucursalIds?.[0];
+    if (!sucursalId) {
+      alert('No tienes una sucursal asignada para agendar citas.');
+      return;
+    }
+
+    try {
+      const cuerpo = {
+        empresaId: getEmpresaActivaId() || usuario?.empresaIds?.[0],
+        sucursalId,
+        pacienteId: form.pacienteId,
+        profesionalId: form.profesionalId,
+        fechaHoraInicio: aInstantISO(form.fecha, form.horaInicio),
+        fechaHoraFin: aInstantISO(form.fecha, form.horaFin),
+        motivo: form.motivo.trim(),
+      };
+      if (citaAReemplazar) {
+        await apiFetch(`/citas/${citaAReemplazar.id}`, { method: 'PUT', body: JSON.stringify(cuerpo) });
+      } else {
+        await apiFetch('/citas', { method: 'POST', body: JSON.stringify(cuerpo) });
+      }
+      setFechaSeleccionada(form.fecha);
+      setMostrarAgenda(false);
+      setCitaAReemplazar(null);
+      setForm(formVacio);
+      refrescarCitas();
+    } catch (err) {
+      alert(err.message || 'No se pudo guardar la cita.');
+    }
   };
+
+  const nombreProfesional = (cita) =>
+    profesionales.find((profesional) => profesional.id === cita.profesionalId)?.nombre ||
+    cita.profesional ||
+    'Profesional';
 
   return (
     <main className="page">
@@ -366,87 +387,17 @@ export default function GestionCitas() {
           </div>}
 
           <div className={`timeline ${vistaAgenda === 'Semana' ? 'agenda-oculta' : ''}`}>
-            {fechaSeleccionada === FECHA_DEMO && citas.length === 0 && <>
-            <div className="time-row">
-              <time>08:00</time>
-              <article className="appointment completed">
-                <div className="appointment-icon">
-                  <img src={userIcon} alt="" aria-hidden="true" />
-                </div>
-                <div>
-                  <h4>Elena Martinez Soler</h4>
-                  <p>Examen General de Vista</p>
-                </div>
-                <span className="badge muted">Completado</span>
-                <a href="#notas">Ver Notas</a>
-              </article>
-            </div>
-
-            <div className="time-row active">
-              <time>09:15</time>
-              <article className="appointment selected">
-                <div className="appointment-icon primary">
-                  <img src={seguimientoIcon} alt="" aria-hidden="true" />
-                </div>
-                <div>
-                  <h4>Javier Ruiz Gomez</h4>
-                  <p>Seguimiento de Glaucoma</p>
-                </div>
-                <span className="badge primary">En progreso</span>
-                <button className="icon-button small" type="button" aria-label="Mas opciones">
-                  <img src={configIcon} alt="" aria-hidden="true" />
-                </button>
-              </article>
-            </div>
-
-            <div className="time-row">
-              <time>10:30</time>
-              <article className="appointment has-actions">
-                <div className="appointment-icon">
-                  <img src={userIcon} alt="" aria-hidden="true" />
-                </div>
-                <div>
-                  <h4>Sofia Castro Villalba</h4>
-                  <p>Consulta Pre-Operatoria</p>
-                </div>
-                <span className="badge info">Confirmado</span>
-                <div className="appointment-actions">
-                  <button className="btn btn-light" type="button">Reagendar</button>
-                  <button className="btn btn-danger-link" type="button">Cancelar</button>
-                </div>
-              </article>
-            </div>
-
-            <div className="time-row">
-              <time>11:45</time>
-              <article className="appointment has-actions">
-                <div className="appointment-icon">
-                  <img src={userIcon} alt="" aria-hidden="true" />
-                </div>
-                <div>
-                  <h4>Marcos Toledo</h4>
-                  <p>Glaucoma (OD)</p>
-                </div>
-                <span className="badge warning">Pendiente</span>
-                <div className="appointment-actions">
-                  <button className="btn btn-primary btn-xs" type="button">Confirmar</button>
-                  <button className="btn btn-danger-link" type="button">Cancelar</button>
-                </div>
-              </article>
-            </div>
-            </>}
-
             {citasDelDia.map((cita) => (
               <div className="time-row" key={cita.id}>
                 <time>{cita.horaInicio}</time>
-                <article className={`appointment ${cita.estado === 'Confirmada' || cita.estado === 'Pendiente' || cita.estado === 'Reagendada' || cita.estado === 'Cancelada' ? 'has-actions' : ''}`}>
+                <article className={`appointment ${['Confirmada', 'Pendiente', 'Reagendada', 'Cancelada'].includes(cita.estado) ? 'has-actions' : ''}`}>
                   <div className="appointment-icon">
                     <img src={userIcon} alt="" aria-hidden="true" />
                   </div>
                   <div>
                     <h4>{cita.pacienteNombre}</h4>
                     <p>{cita.motivo}</p>
-                    <small>{cita.horaInicio}–{cita.horaFin} · {cita.profesional}</small>
+                    <small>{cita.horaInicio}–{cita.horaFin} · {nombreProfesional(cita)}</small>
                   </div>
                   <span className={`badge ${cita.estado === 'Cancelada' ? 'cancelled' : 'warning'}`}>{cita.estado}</span>
                   {cita.estado === 'Confirmada' && (
@@ -455,9 +406,9 @@ export default function GestionCitas() {
                       <button className="btn btn-danger-link" type="button" onClick={() => setCitaACancelar(cita)}>Cancelar</button>
                     </div>
                   )}
-                  {(cita.estado === 'Pendiente' || cita.estado === 'Reagendada') && (
+                  {cita.estado === 'Pendiente' && (
                     <div className="appointment-actions">
-                      <button className="btn btn-primary btn-xs" type="button" onClick={() => cambiarEstadoCita(cita.id, 'Confirmada')}>Confirmar</button>
+                      <button className="btn btn-primary btn-xs" type="button" onClick={() => confirmarCita(cita)}>Confirmar</button>
                       <button className="btn btn-danger-link" type="button" onClick={() => setCitaACancelar(cita)}>Cancelar</button>
                     </div>
                   )}
@@ -469,6 +420,7 @@ export default function GestionCitas() {
                 </article>
               </div>
             ))}
+            {citasDelDia.length === 0 && <p className="agenda-sin-citas">No hay citas para este día.</p>}
 
             <div className="time-row break-row">
               <time>13:00</time>
@@ -512,17 +464,17 @@ export default function GestionCitas() {
               Paciente
               <input className="citas-buscador" type="search" placeholder="Buscar paciente..." value={busquedaPaciente} onChange={(evento) => setBusquedaPaciente(evento.target.value)} />
               <div className="citas-lista-pacientes" role="listbox" aria-label="Listado de pacientes">
-                {pacientes.filter((paciente) => paciente.estado !== 'Desactivado' && (paciente.nombre.toLowerCase().includes(busquedaPaciente.toLowerCase()) || normalizarRutBusqueda(paciente.rut).includes(normalizarRutBusqueda(busquedaPaciente)))).map((paciente) => (
+                {pacientes.filter((paciente) => paciente.activo !== false && (nombreCompleto(paciente).toLowerCase().includes(busquedaPaciente.toLowerCase()) || normalizarRutBusqueda(paciente.numeroDocumento).includes(normalizarRutBusqueda(busquedaPaciente)))).map((paciente) => (
                   <button
-                    key={paciente.rut}
+                    key={paciente.id}
                     type="button"
                     role="option"
-                    aria-selected={form.rut === paciente.rut}
-                    className={form.rut === paciente.rut ? 'activo' : ''}
-                    onClick={() => setForm({ ...form, rut: paciente.rut })}
+                    aria-selected={form.pacienteId === paciente.id}
+                    className={form.pacienteId === paciente.id ? 'activo' : ''}
+                    onClick={() => setForm({ ...form, pacienteId: paciente.id })}
                   >
-                    <strong>{paciente.nombre}</strong>
-                    <span>{paciente.rut}</span>
+                    <strong>{nombreCompleto(paciente)}</strong>
+                    <span>{paciente.numeroDocumento || ''}</span>
                   </button>
                 ))}
               </div>
@@ -532,9 +484,9 @@ export default function GestionCitas() {
               Profesional
               <input className="citas-buscador" type="search" placeholder="Buscar profesional..." value={busquedaProfesional} onChange={(evento) => setBusquedaProfesional(evento.target.value)} />
               <div className="citas-lista-pacientes" role="listbox" aria-label="Listado de profesionales">
-                {profesionales.filter((profesional) => `${profesional.nombre} ${profesional.especialidad}`.toLowerCase().includes(busquedaProfesional.toLowerCase())).map((profesional) => (
-                  <button key={profesional.id} type="button" role="option" aria-selected={form.profesional === profesional.nombre} className={form.profesional === profesional.nombre ? 'activo' : ''} onClick={() => setForm({ ...form, profesional: profesional.nombre })}>
-                    <strong>{profesional.nombre}</strong><span>{profesional.especialidad}</span>
+                {profesionales.filter((profesional) => profesional.activo !== false && `${nombreCompleto(profesional)} ${profesional.especialidad}`.toLowerCase().includes(busquedaProfesional.toLowerCase())).map((profesional) => (
+                  <button key={profesional.id} type="button" role="option" aria-selected={form.profesionalId === profesional.id} className={form.profesionalId === profesional.id ? 'activo' : ''} onClick={() => setForm({ ...form, profesionalId: profesional.id })}>
+                    <strong>{nombreCompleto(profesional)}</strong><span>{profesional.especialidad}</span>
                   </button>
                 ))}
               </div>
@@ -573,7 +525,7 @@ export default function GestionCitas() {
 
             <div className="citas-modal-acciones">
               <button type="button" className="btn btn-light" onClick={() => { setMostrarAgenda(false); setCitaAReemplazar(null); }}>Cancelar</button>
-              <button type="submit" className="btn btn-primary" disabled={!form.rut || !form.profesional}>{citaAReemplazar ? 'Reemplazar cita' : 'Guardar cita'}</button>
+              <button type="submit" className="btn btn-primary" disabled={!form.pacienteId || !form.profesionalId}>{citaAReemplazar ? 'Reemplazar cita' : 'Guardar cita'}</button>
             </div>
           </form>
         </div>
@@ -609,7 +561,7 @@ export default function GestionCitas() {
           <section className="citas-modal-card cancelar-modal" role="dialog" aria-modal="true" aria-labelledby="cancelar-cita-titulo" onClick={(evento) => evento.stopPropagation()}>
             <div className="citas-modal-header"><h2 id="cancelar-cita-titulo">¿Cancelar cita?</h2><button type="button" aria-label="Cerrar" onClick={() => setCitaACancelar(null)}>&times;</button></div>
             <p>Se cancelará la cita de <strong>{citaACancelar.pacienteNombre}</strong> a las {citaACancelar.horaInicio}. Esta acción cambiará su estado a cancelada.</p>
-            <div className="citas-modal-acciones"><button type="button" className="btn btn-light" onClick={() => setCitaACancelar(null)}>Volver</button><button type="button" className="btn btn-danger-link" onClick={() => { cambiarEstadoCita(citaACancelar.id, 'Cancelada'); setCitaACancelar(null); }}>Sí, cancelar cita</button></div>
+            <div className="citas-modal-acciones"><button type="button" className="btn btn-light" onClick={() => setCitaACancelar(null)}>Volver</button><button type="button" className="btn btn-danger-link" onClick={() => cancelarCita(citaACancelar)}>Sí, cancelar cita</button></div>
           </section>
         </div>
       )}

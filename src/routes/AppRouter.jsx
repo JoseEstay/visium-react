@@ -11,7 +11,7 @@ import GestionCitas from "../pages/Citas/GestionCitas";
 import GestionPacientes from "../pages/gestionPacientes/gestionPacientes";
 import NotFound from "../pages/notfound/NotFound";
 import RutaProtegida from "../pages/Login/RutaProtegida";
-import { ThemeProvider } from "../context/ThemeContext";
+import { ThemeProvider } from "../context/ThemeProvider";
 import GestionAdministrativa from "../pages/GestionAdministrativa/GestionAdministrativa";
 import GestionContrasenas from "../pages/GestionContrasenas/GestionContrasenas";
 import RecuperarContrasena from "../pages/Login/RecuperarContrasena";
@@ -41,8 +41,8 @@ export default function AppRouter() {
           <Route path="/gestionPacientes" element={<GestionPacientes />} />
           <Route path="/recetas" element={<Recetas />} />
           <Route path="/recetas/nueva" element={<Recetas />} />
-          <Route path="/recetas/editar/:recetaId" element={<Recetas />} />
-          <Route path="/recetas/historial/:patientRut" element={<HistorialRecetas />} />
+          <Route path="/recetas/editar/:pacienteId/:recetaId" element={<Recetas />} />
+          <Route path="/recetas/historial/:pacienteId" element={<HistorialRecetas />} />
           <Route path="/citas" element={<GestionCitas />} />
           <Route path="/gestion-administrativa/contrasenas" element={<GestionContrasenas />} />
           <Route path="/gestion-administrativa/:resource" element={<GestionAdministrativa />} />

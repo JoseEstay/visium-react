@@ -1,106 +1,150 @@
-import "./Recetas.css"; // Asegúrate de que el archivo CSS esté en la misma carpeta
+import "./Recetas.css";
 import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
+import { apiFetch } from "../../utils/api";
 
-const FECHA_REFERENCIA = new Date("2026-07-31T00:00:00");
-const normalizarTipoVision = (tipoVision) =>
-  tipoVision === "Ambos" ? "Lejos/Cerca" : tipoVision || "Lejos";
+const FECHA_REFERENCIA = new Date();
+
+const formVacio = {
+  odEsfera: "",
+  odCilindro: "",
+  odEje: "",
+  oiEsfera: "",
+  oiCilindro: "",
+  oiEje: "",
+  adicion: "",
+  distanciaPupilar: "",
+  indicaciones: "",
+};
 
 const RecetaPage = () => {
-  const { recetaId } = useParams();
+  const { pacienteId, recetaId } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
   const { pathname } = location;
   const esNuevaReceta = pathname === "/recetas/nueva";
   const pacienteNuevaReceta = location.state?.paciente;
-  const [receta, setReceta] = useState(null);
+  const [form, setForm] = useState(formVacio);
   const [paciente, setPaciente] = useState(null);
-  const [tipoVision, setTipoVision] = useState("Lejos");
+  const [recetaAnterior, setRecetaAnterior] = useState(null);
+  const [mensaje, setMensaje] = useState("");
+  const [guardando, setGuardando] = useState(false);
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: "auto" });
     if (esNuevaReceta) {
-      if (!pacienteNuevaReceta?.rut || !pacienteNuevaReceta?.nombre)
+      if (!pacienteNuevaReceta?.id || !pacienteNuevaReceta?.nombre) {
         navigate("/paciente", { replace: true });
+      }
       return;
     }
-    Promise.all([fetch("/data/recetas.json"), fetch("/data/pacientes.json")])
-      .then(async ([recetasResponse, pacientesResponse]) => {
-        const [recetas, pacientes] = await Promise.all([
-          recetasResponse.json(),
-          pacientesResponse.json(),
-        ]);
-        const recetaInicial = recetaId
-          ? recetas.find((item) => item.id === recetaId)
-          : null;
-        const pacienteAsociado =
-          pacientes.find((item) => item.rut === recetaInicial?.pacienteRut) ||
-          null;
-        if (!recetaInicial || !pacienteAsociado) {
-          navigate("/paciente", { replace: true });
-          return;
-        }
-        setReceta(recetaInicial);
-        setTipoVision(normalizarTipoVision(recetaInicial?.tipoVision));
-        setPaciente(pacienteAsociado);
-      })
-      .catch((error) => console.error("Error cargando receta", error));
-  }, [
-    esNuevaReceta,
-    recetaId,
-    pacienteNuevaReceta?.nombre,
-    pacienteNuevaReceta?.rut,
-    navigate,
-  ]);
+    if (recetaId && pacienteId) {
+      Promise.all([
+        apiFetch(`/recetas/paciente/${pacienteId}`),
+        apiFetch(`/pacientes/${pacienteId}`),
+      ])
+        .then(([recetas, datosPaciente]) => {
+          const receta = (Array.isArray(recetas) ? recetas : [])
+            .find((item) => item.id === recetaId);
+          if (!receta) {
+            navigate("/paciente", { replace: true });
+            return;
+          }
+          setPaciente(datosPaciente || null);
+          const detalle = (ojo) => (receta.detalles || []).find((d) => d.ojo === ojo);
+          setRecetaAnterior(receta);
+          setForm({
+            odEsfera: detalle("OD")?.esfera ?? "",
+            odCilindro: detalle("OD")?.cilindro ?? "",
+            odEje: detalle("OD")?.eje ?? "",
+            oiEsfera: detalle("OI")?.esfera ?? "",
+            oiCilindro: detalle("OI")?.cilindro ?? "",
+            oiEje: detalle("OI")?.eje ?? "",
+            adicion: receta.adicion ?? "",
+            distanciaPupilar: receta.distanciaPupilar ?? "",
+            indicaciones: receta.indicaciones ?? "",
+          });
+        })
+        .catch(() => navigate("/paciente", { replace: true }));
+    }
+  }, [esNuevaReceta, recetaId, pacienteId, pacienteNuevaReceta, navigate]);
 
   const pacienteMostrado = esNuevaReceta ? location.state?.paciente : paciente;
-  const recetaAnterior = esNuevaReceta
-    ? location.state?.recetaAnterior
-    : receta;
   const edad = pacienteMostrado?.fechaNacimiento
-    ? Math.floor(
+    ? Math.max(0, Math.floor(
         (FECHA_REFERENCIA -
           new Date(`${pacienteMostrado.fechaNacimiento}T00:00:00`)) /
           31557600000,
-      )
+      ))
     : "";
-  const fechaReceta = recetaAnterior?.fecha
+  const fechaReceta = recetaAnterior?.fechaEmision
     ? new Intl.DateTimeFormat("es-CL", {
         day: "2-digit",
         month: "short",
         year: "numeric",
-      }).format(new Date(`${recetaAnterior.fecha}T00:00:00`))
+      }).format(new Date(`${recetaAnterior.fechaEmision}T00:00:00`))
     : "";
+
+  const emitirReceta = async (event) => {
+    event.preventDefault();
+    if (!pacienteMostrado?.id) {
+      setMensaje("No hay un paciente asociado a la receta.");
+      return;
+    }
+    setMensaje("");
+    setGuardando(true);
+    try {
+      const consultasPaciente = await apiFetch(`/consultas/paciente/${pacienteMostrado.id}`);
+      const ultimaConsulta = (Array.isArray(consultasPaciente) ? consultasPaciente : [])[0];
+      if (!ultimaConsulta) {
+        setMensaje("El paciente no tiene consultas registradas. Registra primero una consulta (cerrar cita) para poder emitir la receta.");
+        return;
+      }
+      await apiFetch("/recetas", {
+        method: "POST",
+        body: JSON.stringify({
+          consulta: ultimaConsulta.id,
+          adicion: form.adicion ? Number(form.adicion) : null,
+          distanciaPupilar: form.distanciaPupilar ? Number(form.distanciaPupilar) : null,
+          indicaciones: form.indicaciones.trim() || null,
+          detalles: [
+            { ojo: "OD", esfera: form.odEsfera ? Number(form.odEsfera) : null, cilindro: form.odCilindro ? Number(form.odCilindro) : null, eje: form.odEje ? Number(form.odEje) : null },
+            { ojo: "OI", esfera: form.oiEsfera ? Number(form.oiEsfera) : null, cilindro: form.oiCilindro ? Number(form.oiCilindro) : null, eje: form.oiEje ? Number(form.oiEje) : null },
+          ],
+        }),
+      });
+      setMensaje("Receta emitida correctamente.");
+      if (pacienteMostrado.id) {
+        navigate(`/recetas/historial/${pacienteMostrado.id}`, { replace: true });
+      }
+    } catch (error) {
+      setMensaje(error.message || "No se pudo emitir la receta.");
+    } finally {
+      setGuardando(false);
+    }
+  };
 
   return (
     <div className="layout-unificado">
-      {/* SIDEBAR */}
-
-      {/* CONTENIDO PRINCIPAL */}
       <div className="contenido-unificado">
-        {/* NAVBAR */}
-
-        {/* BREADCRUMB */}
         <div className="breadcrumb-bar">
           <span>
-            Paciente / RUT:{" "}
-            {pacienteMostrado?.rut ||
+            Paciente / ID:{" "}
+            {pacienteMostrado?.rut || pacienteMostrado?.id ||
               (esNuevaReceta ? "Sin paciente asociado" : "Cargando...")}{" "}
-            / <span>Nueva Receta</span>
+            / <span>{esNuevaReceta ? "Nueva Receta" : "Editar Receta"}</span>
           </span>
-          {pacienteMostrado?.rut && (
+          {pacienteMostrado?.id && (
             <Link
               className="receta-volver-paciente"
-              to={`/paciente/${pacienteMostrado.rut}`}
+              to={`/paciente/${pacienteMostrado.id}`}
             >
               <i className="bi bi-person-vcard" /> Volver a datos del paciente
             </Link>
           )}
         </div>
 
-        {/* AREA PRINCIPAL */}
-        <main className="receta-page" key={receta?.id || "cargando"}>
-          {/* TARJETA PACIENTE */}
+        <main className="receta-page" key={recetaId || "cargando"}>
           <section className="paciente-card mb-4">
             <div className="paciente-info">
               <div className="foto-paciente">
@@ -112,48 +156,36 @@ const RecetaPage = () => {
                     (esNuevaReceta ? "Nuevo paciente" : "Cargando paciente...")}
                 </h2>
                 <p>
-                  ID: {pacienteMostrado?.rut || "—"}
+                  ID: {pacienteMostrado?.rut || pacienteMostrado?.id || "—"}
                   {edad ? ` • ${edad} Años` : ""}
                 </p>
               </div>
             </div>
             <div className="diagnostico">
-              <span>Diagnóstico Principal</span>
-              <h4>{recetaAnterior?.diagnostico || "—"}</h4>
+              <span>Indicaciones Anteriores</span>
+              <h4>{recetaAnterior?.indicaciones || "—"}</h4>
             </div>
             <div className="ultima-visita">
-              <span>Última Visita</span>
+              <span>Última Receta</span>
               <h4>{recetaAnterior ? fechaReceta : "—"}</h4>
             </div>
-            {recetaAnterior && pacienteMostrado?.rut && (
+            {recetaAnterior && pacienteMostrado?.id && (
               <div className="historial">
-                <Link to={`/recetas/historial/${pacienteMostrado.rut}`}>
+                <Link to={`/recetas/historial/${pacienteMostrado.id}`}>
                   Ver historial recetas
                 </Link>
               </div>
             )}
           </section>
 
-          {/* GRID RECETA */}
           <section className="contenido-receta d-flex justify-content-center">
-            <div>
+            <form onSubmit={emitirReceta}>
               <div className="receta-card">
                 <div className="titulo-receta">
                   <h2>
                     <i className="fa-solid fa-glasses text-primary"></i> Receta
                     Óptica (Refracción)
                   </h2>
-                  <label className="tipo-vision-control">
-                    Graduación
-                    <select
-                      value={tipoVision}
-                      onChange={(event) => setTipoVision(event.target.value)}
-                    >
-                      <option value="Lejos">Lejos</option>
-                      <option value="Cerca">Cerca</option>
-                      <option value="Lejos/Cerca">Lejos/Cerca</option>
-                    </select>
-                  </label>
                 </div>
 
                 <table className="tabla-receta">
@@ -172,33 +204,35 @@ const RecetaPage = () => {
                       <td>
                         <input
                           type="text"
-                          defaultValue={receta?.ojoDerecho?.esfera || ""}
+                          value={form.odEsfera}
+                          onChange={(evento) => setForm({ ...form, odEsfera: evento.target.value })}
                           placeholder="-"
                         />
                       </td>
                       <td>
                         <input
                           type="text"
-                          defaultValue={receta?.ojoDerecho?.cilindro || ""}
+                          value={form.odCilindro}
+                          onChange={(evento) => setForm({ ...form, odCilindro: evento.target.value })}
                           placeholder="-0"
                         />
                       </td>
                       <td>
                         <input
                           type="text"
-                          defaultValue={receta?.ojoDerecho?.eje || ""}
+                          value={form.odEje}
+                          onChange={(evento) => setForm({ ...form, odEje: evento.target.value })}
                           placeholder="."
                         />
                       </td>
-
-                      {/* Se agrega rowSpan={2} y alineación vertical para que quede en el medio */}
                       <td
                         rowSpan={2}
                         style={{ verticalAlign: "middle", textAlign: "center" }}
                       >
                         <input
                           type="text"
-                          defaultValue={receta?.ojoDerecho?.adicion || ""}
+                          value={form.adicion}
+                          onChange={(evento) => setForm({ ...form, adicion: evento.target.value })}
                           placeholder="+"
                         />
                       </td>
@@ -208,26 +242,27 @@ const RecetaPage = () => {
                       <td>
                         <input
                           type="text"
-                          defaultValue={receta?.ojoIzquierdo?.esfera || ""}
+                          value={form.oiEsfera}
+                          onChange={(evento) => setForm({ ...form, oiEsfera: evento.target.value })}
                           placeholder="-"
                         />
                       </td>
                       <td>
                         <input
                           type="text"
-                          defaultValue={receta?.ojoIzquierdo?.cilindro || ""}
+                          value={form.oiCilindro}
+                          onChange={(evento) => setForm({ ...form, oiCilindro: evento.target.value })}
                           placeholder="-0"
                         />
                       </td>
                       <td>
                         <input
                           type="text"
-                          defaultValue={receta?.ojoIzquierdo?.eje || ""}
+                          value={form.oiEje}
+                          onChange={(evento) => setForm({ ...form, oiEje: evento.target.value })}
                           placeholder="."
                         />
                       </td>
-
-                      {/* Se eliminó el <td> de adición de esta fila para respetar el espacio de la fila superior */}
                     </tr>
                   </tbody>
                 </table>
@@ -238,65 +273,39 @@ const RecetaPage = () => {
                     <div className="input-duo">
                       <input
                         type="text"
-                        defaultValue={receta?.distanciaPupilar?.lejos || ""}
-                        placeholder="Lejos (mm)"
-                      />
-                      <input
-                        type="text"
-                        defaultValue={receta?.distanciaPupilar?.cerca || ""}
-                        placeholder="Cerca (mm)"
+                        value={form.distanciaPupilar}
+                        onChange={(evento) => setForm({ ...form, distanciaPupilar: evento.target.value })}
+                        placeholder="mm"
                       />
                     </div>
-                  </div>
-                  <div className="grupo">
-                    <label>Material Sugerido</label>
-                    <select defaultValue={receta?.materialSugerido || ""}>
-                      <option value="" disabled>
-                        Seleccionar material...
-                      </option>
-                      <option value="Policarbonato con Antirreflejo">
-                        Policarbonato con Antirreflejo
-                      </option>
-                      <option value="CR-39">CR-39</option>
-                      <option value="Alto Índice">Alto Índice</option>
-                    </select>
                   </div>
                 </div>
               </div>
 
-              {/* Tarjeta Observaciones */}
               <div className="receta-card">
                 <div className="grupo mb-0">
-                  <label htmlFor="diagnostico-receta">Diagnóstico</label>
-                  <input
-                    id="diagnostico-receta"
-                    type="text"
-                    defaultValue={receta?.diagnostico || ""}
-                    placeholder="Ej. Miopía, glaucoma, catarata..."
-                  />
                   <label>Indicaciones Clínicas y Observaciones</label>
                   <textarea
                     rows="4"
                     className="form-control mt-2"
-                    defaultValue={receta?.indicaciones || ""}
+                    value={form.indicaciones}
+                    onChange={(evento) => setForm({ ...form, indicaciones: evento.target.value })}
                     placeholder="Ej. Uso permanente para lectura, evitar exposición prolongada a pantallas sin filtros..."
                   />
                 </div>
               </div>
-            </div>
-          </section>
 
-          {/* FOOTER / ACCIONES */}
-          <footer className="acciones-footer">
-            <div className="acciones-botones">
-              <button type="button" className="btn-guardar">
-                Guardar Borrador
-              </button>
-              <button type="button" className="btn-imprimir">
-                <i className="fa-solid fa-paper-plane"></i> Emitir Receta
-              </button>
-            </div>
-          </footer>
+              {mensaje && <p className="receta-mensaje" role="status">{mensaje}</p>}
+
+              <footer className="acciones-footer">
+                <div className="acciones-botones">
+                  <button type="submit" className="btn-imprimir" disabled={guardando}>
+                    <i className="fa-solid fa-paper-plane"></i> {guardando ? "Emitiendo..." : "Emitir Receta"}
+                  </button>
+                </div>
+              </footer>
+            </form>
+          </section>
         </main>
       </div>
     </div>

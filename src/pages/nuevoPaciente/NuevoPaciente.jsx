@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import './NuevoPaciente.css';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import { apiFetch, getEmpresaActivaId } from '../../utils/api';
 
 const formVacio = {
   nombre: '', rut: '', fecha: '', sexo: '', telefono: '', email: '',
@@ -29,12 +30,37 @@ function formatearFechaNacimiento(fecha) {
   return `${dia}/${mes}/${anio}`;
 }
 
+function fechaALocalDate(fecha) {
+  if (!fecha) return '';
+  const partes = fecha.split('/');
+  if (partes.length === 3 && partes[2].length === 4) {
+    return `${partes[2]}-${partes[1]}-${partes[0]}`;
+  }
+  return fecha;
+}
+
+function cuerpoPaciente(formData) {
+  const partes = formData.nombre.trim().split(/\s+/);
+  return {
+    empresaId: getEmpresaActivaId(),
+    numeroDocumento: formData.rut,
+    nombre: partes[0] || formData.nombre,
+    apellido: partes.slice(1).join(' ') || '—',
+    fechaNacimiento: fechaALocalDate(formData.fecha) || null,
+    sexo: formData.sexo ? formData.sexo.toUpperCase() : null,
+    telefono: formData.telefono,
+    email: formData.email,
+    activo: true,
+  };
+}
+
 export default function NuevoPaciente() {
   const { patientRut } = useParams();
-  const [patients, setPatients] = useState([]);
-  const selectedPatientRut = patientRut || '';
+  const navigate = useNavigate();
+  const selectedPatientId = patientRut || '';
   const [savedMessage, setSavedMessage] = useState('');
   const [fieldErrors, setFieldErrors] = useState({});
+  const [saving, setSaving] = useState(false);
   // ===============================
   // ESTADOS DEL FORMULARIO
   // ===============================
@@ -44,45 +70,34 @@ export default function NuevoPaciente() {
   const [alergiaInput, setAlergiaInput] = useState('');
 
   useEffect(() => {
-    Promise.all([fetch('/data/pacientes.json'), fetch('/data/recetas.json')])
-      .then(async ([patientsResponse, fichasResponse]) => {
-        const [basePatients, baseFichas] = await Promise.all([patientsResponse.json(), fichasResponse.json()]);
-        let storedPatients;
-        try { storedPatients = JSON.parse(localStorage.getItem('visium.admin.pacientes') || '[]'); } catch { storedPatients = []; }
-        const storedByRut = new Map(storedPatients.map((patient) => [patient.rut, patient]));
-        const fichasByPatient = new Map();
-        baseFichas.forEach((ficha) => fichasByPatient.set(ficha.pacienteRut, [ficha]));
-        const loadedPatients = basePatients.map((patient) => {
-          const saved = storedByRut.get(patient.rut) || {};
-          const fichas = saved.fichas || (saved.ficha ? [saved.ficha] : fichasByPatient.get(patient.rut) || []);
-          return {
-            ...patient,
-            ...saved,
-            // Registros creados antes de incorporar estos campos pueden contener cadenas vacías.
-            fechaNacimiento: saved.fechaNacimiento || patient.fechaNacimiento,
-            email: saved.email || patient.email,
-            fichas
-          };
-        });
-        setPatients(loadedPatients);
-        const patient = loadedPatients.find((item) => item.rut === patientRut);
-        if (!patient) {
-          setFormData(formVacio);
-          setAlergias([]);
-          return;
-        }
-        const lastRecord = patient.fichas.at(-1) || {};
-        const antecedentes = patient.antecedentes || lastRecord.condicionesMedicas || {};
+    let activo = true;
+    if (!patientRut) {
+      Promise.resolve().then(() => {
+        if (!activo) return;
+        setFormData(formVacio);
+        setAlergias([]);
+      });
+      return () => { activo = false; };
+    }
+    apiFetch(`/pacientes/${patientRut}`)
+      .then((paciente) => {
+        if (!activo) return;
         setFormData({
-          nombre: patient.nombre || '', rut: patient.rut || '', fecha: formatearFechaNacimiento(patient.fechaNacimiento), sexo: (patient.sexo || '').toLowerCase(),
-          telefono: patient.telefono || '', email: patient.email || '',
-          diabetes: antecedentes.diabetes ?? false,
-          hipertension: antecedentes.hipertension ?? false,
-          glaucoma: antecedentes.glaucoma ?? false
+          nombre: `${paciente.nombre || ''} ${paciente.apellido || ''}`.trim(),
+          rut: paciente.numeroDocumento || '',
+          fecha: formatearFechaNacimiento(paciente.fechaNacimiento),
+          sexo: (paciente.sexo || '').toLowerCase(),
+          telefono: paciente.telefono || '',
+          email: paciente.email || '',
+          diabetes: false,
+          hipertension: false,
+          glaucoma: false
         });
-        setAlergias(antecedentes.alergias || lastRecord.alergias || []);
       })
-      .catch((error) => console.error('Error cargando la ficha', error));
+      .catch(() => {
+        if (activo) setFormData(formVacio);
+      });
+    return () => { activo = false; };
   }, [patientRut]);
 
   // ===============================
@@ -133,25 +148,25 @@ export default function NuevoPaciente() {
     setAlergias(alergias.filter((_, index) => index !== indexToRemove));
   };
 
-  const handleUpdatePatient = () => {
+  const handleUpdatePatient = async () => {
     const errorValidacion = validarDatosPersonales();
     if (errorValidacion) {
       setSavedMessage(errorValidacion);
       return;
     }
-    const patient = patients.find((item) => item.rut === selectedPatientRut);
-    if (!patient) return;
-
-    const updatedPatient = {
-      ...patient,
-      nombre: formData.nombre, rut: formData.rut, fechaNacimiento: formData.fecha, sexo: formData.sexo,
-      telefono: formData.telefono, email: formData.email,
-      antecedentes: { alergias, diabetes: formData.diabetes, hipertension: formData.hipertension, glaucoma: formData.glaucoma }
-    };
-    const updatedPatients = patients.map((item) => item.rut === patient.rut ? updatedPatient : item);
-    setPatients(updatedPatients);
-    localStorage.setItem('visium.admin.pacientes', JSON.stringify(updatedPatients));
-    setSavedMessage('Datos y antecedentes actualizados.');
+    if (!selectedPatientId) return;
+    setSaving(true);
+    try {
+      await apiFetch(`/pacientes/${selectedPatientId}`, {
+        method: 'PUT',
+        body: JSON.stringify(cuerpoPaciente(formData)),
+      });
+      setSavedMessage('Datos y antecedentes actualizados.');
+    } catch (error) {
+      setSavedMessage(error.message || 'No se pudo actualizar el paciente.');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const validarDatosPersonales = () => {
@@ -164,24 +179,36 @@ export default function NuevoPaciente() {
     return '';
   };
 
-  const handleCrearFicha = (event) => {
-    if (selectedPatientRut) return;
+  const handleCrearReceta = async (event) => {
+    event.preventDefault();
     const errorValidacion = validarDatosPersonales();
     if (errorValidacion) {
-      event.preventDefault();
       setSavedMessage(errorValidacion);
+      return;
     }
-  };
-
-  const selectedPatient = patients.find((patient) => patient.rut === selectedPatientRut);
-  const tieneRecetas = Boolean(selectedPatient?.fichas?.length);
-  const datosParaNuevaReceta = {
-    paciente: {
+    const paciente = {
+      id: selectedPatientId,
       nombre: formData.nombre,
       rut: formData.rut,
-      fechaNacimiento: formData.fecha,
-    },
-    recetaAnterior: selectedPatient?.fichas?.at(-1) || null,
+      fechaNacimiento: fechaALocalDate(formData.fecha),
+    };
+    if (!selectedPatientId) {
+      setSaving(true);
+      try {
+        const creado = await apiFetch('/pacientes', {
+          method: 'POST',
+          body: JSON.stringify(cuerpoPaciente(formData)),
+        });
+        setSaving(false);
+        navigate('/recetas/nueva', { state: { paciente: { ...paciente, id: creado.id } } });
+        return;
+      } catch (error) {
+        setSaving(false);
+        setSavedMessage(error.message || 'No se pudo crear el paciente.');
+        return;
+      }
+    }
+    navigate('/recetas/nueva', { state: { paciente } });
   };
 
   return (
@@ -207,7 +234,7 @@ export default function NuevoPaciente() {
                   <option value="">Seleccionar...</option>
                   <option value="femenino">Femenino</option>
                   <option value="masculino">Masculino</option>
-                  <option value="no-contestar">Prefiero no contestar</option>
+                  <option value="no-informa">Prefiero no contestar</option>
                 </select>
                 {fieldErrors.sexo && <small className="field-error">{fieldErrors.sexo}</small>}
               </label>
@@ -259,11 +286,11 @@ export default function NuevoPaciente() {
           <footer className="action-bar">
             <p className="required-note">* Campos obligatorios</p>
             <div className="action-buttons">
-              <button type="button" className="btn-secundario" onClick={handleUpdatePatient} disabled={!selectedPatientRut}>
-                Actualizar datos
+              <button type="button" className="btn-secundario" onClick={handleUpdatePatient} disabled={!selectedPatientId || saving}>
+                {saving ? 'Guardando...' : 'Actualizar datos'}
               </button>
-              {tieneRecetas && <Link to={`/recetas/historial/${selectedPatientRut}`} className="btn-secundario">Ver historial recetas</Link>}
-              <Link to="/recetas/nueva" state={datosParaNuevaReceta} onClick={handleCrearFicha} className="btn-primario">Crear nueva receta</Link>
+              {selectedPatientId && <Link to={`/recetas/historial/${selectedPatientId}`} className="btn-secundario">Ver historial recetas</Link>}
+              <button onClick={handleCrearReceta} className="btn-primario" disabled={saving}>Crear nueva receta</button>
             </div>
             {savedMessage && <p className="save-message" role="status">{savedMessage}</p>}
           </footer>

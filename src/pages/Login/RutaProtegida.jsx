@@ -1,11 +1,11 @@
 import { Navigate, Outlet } from "react-router";
 
 const rutaProtegida = () => {
-    const sesionIniciada = localStorage.getItem("sesionIniciada");
+    const token = localStorage.getItem("token");
     const usuarioActual = localStorage.getItem("usuarioActual");
 
-    if (sesionIniciada !== "true" || !usuarioActual) {
-        return <Navigate to ="/login" replace />
+    if (!token || !usuarioActual) {
+        return <Navigate to="/login" replace />
     }
     return <Outlet />;
 };

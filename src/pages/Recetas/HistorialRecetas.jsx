@@ -1,65 +1,102 @@
-import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
-import './HistorialRecetas.css';
-
-const normalizarTipoVision = (tipoVision) => tipoVision === 'Ambos' ? 'Lejos/Cerca' : (tipoVision || 'Lejos');
+import { useCallback, useEffect, useState } from "react";
+import { Link, useParams } from "react-router-dom";
+import { apiFetch, descargarArchivo } from "../../utils/api";
+import { fechaDeInstant, nombreCompleto } from "../../utils/formato";
+import "./HistorialRecetas.css";
 
 export default function HistorialRecetas() {
-  const { patientRut } = useParams();
+  const { pacienteId } = useParams();
   const [paciente, setPaciente] = useState(null);
   const [recetas, setRecetas] = useState([]);
+  const [cargando, setCargando] = useState(true);
+
+  const cargarHistorial = useCallback(() => {
+    if (!pacienteId) return;
+    Promise.all([
+      apiFetch(`/pacientes/${pacienteId}`),
+      apiFetch(`/recetas/paciente/${pacienteId}`),
+    ])
+      .then(([datosPaciente, recetasPaciente]) => {
+        setPaciente(datosPaciente || null);
+        setRecetas(
+          [...(Array.isArray(recetasPaciente) ? recetasPaciente : [])].sort(
+            (a, b) => String(b.fechaEmision || "").localeCompare(String(a.fechaEmision || "")),
+          ),
+        );
+      })
+      .catch((error) => {
+        setPaciente(null);
+        setRecetas([]);
+        console.error("Error cargando historial de recetas", error);
+      })
+      .finally(() => setCargando(false));
+  }, [pacienteId]);
 
   useEffect(() => {
-    Promise.all([fetch('/data/pacientes.json'), fetch('/data/recetas.json')])
-      .then(async ([pacientesResponse, recetasResponse]) => {
-        const [pacientes, recetasBase] = await Promise.all([pacientesResponse.json(), recetasResponse.json()]);
-        let recetasGuardadas;
-        try { recetasGuardadas = JSON.parse(localStorage.getItem('visium.recetas') || '[]'); } catch { recetasGuardadas = []; }
-        const recetasPorId = new Map(recetasBase.map((receta) => [receta.id, receta]));
-        recetasGuardadas.forEach((receta) => recetasPorId.set(receta.id, receta));
-        setPaciente(pacientes.find((item) => item.rut === patientRut) || null);
-        setRecetas([...recetasPorId.values()]
-          .filter((receta) => receta.pacienteRut === patientRut)
-          .sort((a, b) => b.fecha.localeCompare(a.fecha)));
-      })
-      .catch((error) => console.error('Error cargando historial de recetas', error));
-  }, [patientRut]);
+    cargarHistorial();
+  }, [cargarHistorial]);
+
+  const descargarPdf = async (recetaId) => {
+    try {
+      await descargarArchivo(`/recetas/${recetaId}/pdf`, `Receta_${recetaId}.pdf`);
+    } catch (error) {
+      console.error("Error descargando receta", error);
+    }
+  };
+
+  const detalle = (receta, ojo) => (receta.detalles || []).find((d) => d.ojo === ojo);
 
   return (
     <main className="historial-recetas-page">
-      <Link className="historial-volver" to={`/paciente/${patientRut}`}><i className="bi bi-arrow-left" /> Volver a ficha del paciente</Link>
+      <Link className="historial-volver" to={`/paciente/${pacienteId}`}><i className="bi bi-arrow-left" /> Volver a ficha del paciente</Link>
       <header className="historial-header">
         <div>
           <p>Historial de recetas</p>
-          <h1>{paciente?.nombre || 'Paciente no encontrado'}</h1>
-          <span>RUT: {patientRut}</span>
+          <h1>{paciente ? nombreCompleto(paciente) : "Cargando..."}</h1>
+          <span>ID: {paciente?.numeroDocumento || pacienteId}</span>
         </div>
-        <div className="historial-total">{recetas.length} receta{recetas.length === 1 ? '' : 's'}</div>
+        <div className="historial-total">{cargando ? "..." : `${recetas.length} receta${recetas.length === 1 ? "" : "s"}`}</div>
       </header>
 
-      {recetas.length ? (
+      {!cargando && recetas.length ? (
         <section className="historial-lista" aria-label="Recetas del paciente">
-          {recetas.map((receta) => (
-            <article className="historial-receta-card" key={receta.id}>
-              <div className="historial-receta-cabecera">
-                <div><span>Receta óptica</span><h2>{new Intl.DateTimeFormat('es-CL', { day: '2-digit', month: 'long', year: 'numeric' }).format(new Date(`${receta.fecha}T00:00:00`))}</h2></div>
-                <div className="historial-graduacion"><span>Graduación</span><span className="historial-tipo">{normalizarTipoVision(receta.tipoVision)}</span></div>
-              </div>
-              <dl>
-                <div><dt>Diagnóstico</dt><dd>{receta.diagnostico || 'Sin diagnóstico'}</dd></div>
-                <div><dt>Material</dt><dd>{receta.materialSugerido || 'No especificado'}</dd></div>
-                <div><dt>Indicaciones</dt><dd>{receta.indicaciones || 'Sin indicaciones'}</dd></div>
-              </dl>
-              <div className="historial-valores">
-                <div><strong>OD</strong><span>SPH {receta.ojoDerecho?.esfera || '—'} · CYL {receta.ojoDerecho?.cilindro || '—'} · Eje {receta.ojoDerecho?.eje || '—'} · ADD {receta.ojoDerecho?.adicion || '—'}</span></div>
-                <div><strong>OI</strong><span>SPH {receta.ojoIzquierdo?.esfera || '—'} · CYL {receta.ojoIzquierdo?.cilindro || '—'} · Eje {receta.ojoIzquierdo?.eje || '—'} · ADD {receta.ojoIzquierdo?.adicion || '—'}</span></div>
-                <div><strong>DP</strong><span>Lejos {receta.distanciaPupilar?.lejos || '—'} mm · Cerca {receta.distanciaPupilar?.cerca || '—'} mm</span></div>
-              </div>
-              {receta.id === recetas[0]?.id && <Link className="historial-editar" to={`/recetas/editar/${receta.id}`}><i className="bi bi-pencil" /> Modificar última receta</Link>}
-            </article>
-          ))}
+          {recetas.map((receta) => {
+            const od = detalle(receta, "OD");
+            const oi = detalle(receta, "OI");
+            return (
+              <article className="historial-receta-card" key={receta.id}>
+                <div className="historial-receta-cabecera">
+                  <div>
+                    <span>Receta óptica</span>
+                    <h2>{fechaDeInstant(receta.fechaEmision) || "—"}</h2>
+                  </div>
+                  <div className="historial-graduacion">
+                    <span>Graduación</span>
+                    <span className="historial-tipo">{receta.vigenciaHasta ? `Vigente hasta ${fechaDeInstant(receta.vigenciaHasta)}` : "Sin vencimiento"}</span>
+                  </div>
+                </div>
+                <dl>
+                  <div><dt>Indicaciones</dt><dd>{receta.indicaciones || "Sin indicaciones"}</dd></div>
+                  <div><dt>Observaciones</dt><dd>{receta.observaciones || "Sin observaciones"}</dd></div>
+                </dl>
+                <div className="historial-valores">
+                  <div><strong>OD</strong><span>SPH {od?.esfera ?? "—"} · CYL {od?.cilindro ?? "—"} · Eje {od?.eje ?? "—"}</span></div>
+                  <div><strong>OI</strong><span>SPH {oi?.esfera ?? "—"} · CYL {oi?.cilindro ?? "—"} · Eje {oi?.eje ?? "—"}</span></div>
+                  <div><strong>DP</strong><span>{receta.distanciaPupilar ?? "—"} mm · ADD {receta.adicion ?? "—"}</span></div>
+                </div>
+                <div className="historial-acciones">
+                  {receta.id === recetas[0]?.id && (
+                    <Link className="historial-editar" to={`/recetas/editar/${pacienteId}/${receta.id}`}><i className="bi bi-pencil" /> Modificar última receta</Link>
+                  )}
+                  <button className="historial-descargar" onClick={() => descargarPdf(receta.id)}><i className="bi bi-file-earmark-arrow-down" /> Descargar PDF</button>
+                </div>
+              </article>
+            );
+          })}
         </section>
-      ) : <section className="historial-vacio"><i className="bi bi-file-earmark-text" /><h2>Sin recetas registradas</h2><p>Este paciente aún no tiene recetas ópticas asociadas.</p></section>}
+      ) : !cargando ? (
+        <section className="historial-vacio"><i className="bi bi-file-earmark-text" /><h2>Sin recetas registradas</h2><p>Este paciente aún no tiene recetas ópticas asociadas.</p></section>
+      ) : null}
     </main>
   );
 }
